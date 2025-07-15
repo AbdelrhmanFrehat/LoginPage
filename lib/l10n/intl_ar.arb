@@ -1,0 +1,23 @@
+{
+  "@@locale": "ar",
+  "helloWorld": "مرحبا بالعالم!",
+  "login": "تسجيل الدخول",
+  "usernamePlaceHoldar": "ادخل اسم المستخدم",
+  "passwordPlaceHoldar": "ادخل كلمة المرور",
+  "fullnamePlaceHoldar": "ادخل اسمك الكامل",
+  "emailPlaceHoldar": "ادخل البريد الاكتروني",
+  "regester": "ليس لديك حساب ؟ سجل الان",
+  "username": "اسم المستخدم",
+  "email": "البريد الالكتروني",
+  "fullname": "الاسم الكامل",
+  "password": "كلمة السر",
+  "regester2": "انشاء حساب",
+  "sucsessRegesterMsg": "نجح التسجيل ! انطلق الى تسجيل الدخول",
+  "loginSuccessMsg": "نجح التسجيل الدخول",
+  "loginFailedMsg": "Login failed. Please try again.",
+  "phoneNumberPlaceHoldar": "ادخل رقم الهاتف",
+  "phoneNumber": "رقم الهاتف",
+  "ok": "حسنا",
+  "vildot": "الرجاء ادخال المعلومات  ",
+  "usernameAlreadyExists": "اسم المستخدم مستخدم بالفعل."
+}
