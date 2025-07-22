@@ -19,5 +19,6 @@
   "phoneNumber": "Phone Number",
   "ok": "OK",
   "vildot": "plz enter data",
-  "usernameAlreadyExists": "This username is already taken."
+  "usernameAlreadyExists": "This username is already taken.",  "loginWithBiometric": "Login with Biometrics"
+
 }

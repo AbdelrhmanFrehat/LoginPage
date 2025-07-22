@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This username is already taken.'**
   String get usernameAlreadyExists;
+
+  /// No description provided for @loginWithBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with Biometrics'**
+  String get loginWithBiometric;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

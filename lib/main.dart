@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_4/l10n/app_localizations.dart';
 import 'package:flutter_application_4/l10n/i10n.dart';
-import 'package:flutter_application_4/login.dart';
+import 'package:flutter_application_4/views/login.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'database/database.dart';
 import 'l10n/i10n.dart';
@@ -10,9 +10,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseHelper.instance;
   runApp(
-   MainApp(
-        cruuntLang: Locale("ar"),
-    ),  
+    MainApp(
+      cruuntLang: Locale("ar"),
+    ),
   );
 }
 
@@ -42,7 +42,7 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: ThemeData.dark(),
-      debugShowCheckedModeBanner:false ,
+        debugShowCheckedModeBanner: false,
         supportedLocales: L10n.all,
         locale: cruuntLang,
         localizationsDelegates: const [

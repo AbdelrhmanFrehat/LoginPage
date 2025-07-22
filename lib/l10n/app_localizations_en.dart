@@ -63,4 +63,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usernameAlreadyExists => 'This username is already taken.';
+
+  @override
+  String get loginWithBiometric => 'Login with Biometrics';
 }

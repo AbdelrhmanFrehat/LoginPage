@@ -8,8 +8,14 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'database/database.dart';
-import 'services/user.service.dart';
+import '../database/database.dart';
+import '../models/user.dart';
+import '../services/user.service.dart';
+import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter_application_4/l10n/app_localizations.dart';
+import 'package:flutter_application_4/database/database.dart';
+import 'package:flutter_application_4/services/user.service.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({super.key, required this.change, required this.cruuntLang});
@@ -34,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
       username: '', password: '', fullname: '', email: '', phoneNumber: '');
   bool isRegesterMode = false;
   String resultMsg = "";
+  final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
   void initState() {
@@ -60,10 +67,12 @@ class _LoginPageState extends State<LoginPage> {
       bool x =
           await DatabaseHelper.instance.checkUser(user.username, user.password);
       if (x) {
-        Users? user6= await DatabaseHelper.instance.getUserByUsername(user.username);
-        if(user6!=null)
-        print(user6.fullname.toString());
-        else print("no user found");
+        Users? user6 =
+            await DatabaseHelper.instance.getUserByUsername(user.username);
+        if (user6 != null)
+          print(user6.fullname.toString());
+        else
+          print("no user found");
         return resultMsg =
             AppLocalizations.of(context as BuildContext)!.loginSucessMsg;
       } else {
@@ -75,7 +84,8 @@ class _LoginPageState extends State<LoginPage> {
         bool exists =
             await DatabaseHelper.instance.isUsernameExit(user.username);
         if (exists) {
-          return resultMsg = AppLocalizations.of(context)!.usernameAlreadyExists;
+          return resultMsg =
+              AppLocalizations.of(context)!.usernameAlreadyExists;
         }
         await DatabaseHelper.instance.addUser(user);
 
@@ -90,6 +100,20 @@ class _LoginPageState extends State<LoginPage> {
         return resultMsg =
             AppLocalizations.of(context as BuildContext)!.loginFailedMsg;
       }
+    }
+  }
+
+  Future<bool> _authenticateWithBiometrics() async {
+    try {
+      bool isAuthenticated = await _localAuth.authenticate(
+        localizedReason:
+            'يرجى التحقق باستخدام بصمة الوجه أو الإصبع لتسجيل الدخول',
+        options: const AuthenticationOptions(biometricOnly: true),
+      );
+      return isAuthenticated;
+    } catch (e) {
+      print("Error authenticating: $e");
+      return false;
     }
   }
 
@@ -278,23 +302,23 @@ class _LoginPageState extends State<LoginPage> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                  content: FutureBuilder(
-                                    future: loginRegester(user, context),
-                                    builder: (context, snapshot) {
-                                      return Text(resultMsg);
-                                    },
+                                content: FutureBuilder(
+                                  future: loginRegester(user, context),
+                                  builder: (context, snapshot) {
+                                    return Text(resultMsg);
+                                  },
+                                ),
+                                actions: [
+                                  Center(
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                            AppLocalizations.of(context)!.ok)),
                                   ),
-                                  actions: [
-                                    Center(
-                                      child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text(
-                                              AppLocalizations.of(context)!
-                                                  .ok)),
-                                    ),
-                                  ]);
+                                ],
+                              );
                             },
                           );
                         }
@@ -302,6 +326,45 @@ class _LoginPageState extends State<LoginPage> {
                       child: Text(!isRegesterMode
                           ? AppLocalizations.of(context)!.login
                           : AppLocalizations.of(context)!.regester2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: IconButton(
+                      icon: Icon(Icons.fingerprint, size: 36),
+                      tooltip: AppLocalizations.of(context)!.login,
+                      onPressed: () async {
+                        bool isAuthenticated =
+                            await _authenticateWithBiometrics();
+                        if (isAuthenticated) {
+                          Users? user6 = await DatabaseHelper.instance
+                              .getUserByUsername(usernameController.text);
+                          if (user6 != null) {
+                            print("Welcome ${user6.fullname}");
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  content: Text(AppLocalizations.of(context)!
+                                      .loginSucessMsg),
+                                  actions: [
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: Text(
+                                          AppLocalizations.of(context)!.ok),
+                                    )
+                                  ],
+                                );
+                              },
+                            );
+                          } else {
+                            print("User not found");
+                          }
+                        } else {
+                          print("Biometric authentication failed");
+                        }
+                      },
                     ),
                   ),
                   Visibility(

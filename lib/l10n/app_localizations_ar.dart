@@ -63,4 +63,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get usernameAlreadyExists => 'اسم المستخدم مستخدم بالفعل.';
+
+  @override
+  String get loginWithBiometric => 'تسجيل الدخول بالبصمة';
 }

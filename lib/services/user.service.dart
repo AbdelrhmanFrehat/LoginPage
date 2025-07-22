@@ -1,38 +1,28 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:flutter_application_4/database/database.dart';
-class Users {
-  final int? id;
-  String fullname;
-  String username;
-  String password;
-  String email;
-  String phoneNumber;
-  Users(
-      {required this.username,
-      required this.password,
-      this.id,
-      required this.fullname,
-      required this.email,required this.phoneNumber});
-  factory Users.fromMap(Map<String, dynamic> json) => Users(
-        id: json['id'],
-        fullname: json['fullname'],
-        email: json['email'],
-        username: json['username'],
-        password: json['password'],
-        phoneNumber: json['phoneNumber'],
-      );
-  
+import '../models/user.dart';
+import '../database/database.dart';
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      "fullname": fullname,
-      "email": email,
-      'username': username,
-      'phoneNumber': phoneNumber,
-      'password': password
-    };
+class UserService {
+  Future<bool> login(String username, String password) async {
+    return await DatabaseHelper.instance.checkUser(username, password);
   }
 
-}
+  Future<String?> register(Users user) async {
+    bool exists = await DatabaseHelper.instance.isUsernameExit(user.username);
+    if (exists) return "Username already exists";
+    await DatabaseHelper.instance.addUser(user);
+    return null;
+  }
 
+  Future<Users?> getUserByUsername(String username) async {
+    return await DatabaseHelper.instance.getUserByUsername(username);
+  }
+
+  Future<List<Users>> getAllUsers() async {
+    final rawUsers = await DatabaseHelper.instance.getUsers();
+    return rawUsers.map((e) => Users.fromMap(e.toMap())).toList();
+  }
+
+  Future<bool> checkUsernameExists(String username) async {
+    return await DatabaseHelper.instance.isUsernameExit(username);
+  }
+}

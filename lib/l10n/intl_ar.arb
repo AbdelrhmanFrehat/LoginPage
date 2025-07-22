@@ -19,5 +19,6 @@
   "phoneNumber": "رقم الهاتف",
   "ok": "حسنا",
   "vildot": "الرجاء ادخال المعلومات  ",
-  "usernameAlreadyExists": "اسم المستخدم مستخدم بالفعل."
+  "usernameAlreadyExists": "اسم المستخدم مستخدم بالفعل.",  "loginWithBiometric": "تسجيل الدخول بالبصمة"
+
 }
