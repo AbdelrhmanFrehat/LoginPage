@@ -19,6 +19,8 @@
   "phoneNumber": "Phone Number",
   "ok": "OK",
   "vildot": "plz enter data",
-  "usernameAlreadyExists": "This username is already taken.",  "loginWithBiometric": "Login with Biometrics"
-
+  "usernameAlreadyExists": "This username is already taken.",
+  "loginWithBiometric": "Login with Biometrics","biometricPrompt": "Please verify using face or fingerprint to log in",
+  "emptyFieldsMsg": "Please enter both username and password",
+  "backToLogin":"already have an acount? back for login"
 }

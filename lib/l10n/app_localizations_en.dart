@@ -66,4 +66,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginWithBiometric => 'Login with Biometrics';
+
+  @override
+  String get biometricPrompt => 'Please verify using face or fingerprint to log in';
+
+  @override
+  String get emptyFieldsMsg => 'Please enter both username and password';
+
+  @override
+  String get backToLogin => 'already have an acount? back for login';
 }

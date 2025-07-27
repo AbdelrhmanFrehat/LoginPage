@@ -66,4 +66,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get loginWithBiometric => 'تسجيل الدخول بالبصمة';
+
+  @override
+  String get biometricPrompt => 'يرجى التحقق باستخدام بصمة الوجه أو الإصبع لتسجيل الدخول';
+
+  @override
+  String get emptyFieldsMsg => 'الرجاء إدخال اسم المستخدم وكلمة المرور';
+
+  @override
+  String get backToLogin => 'لديك حساب بل فعل ؟ انتقل الى تسجيل الدخول';
 }

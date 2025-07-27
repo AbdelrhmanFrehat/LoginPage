@@ -1,9 +1,15 @@
+import '../../database/database.dart';
 import '../models/user.dart';
-import '../database/database.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserService {
+
+
+final storage = FlutterSecureStorage();
+
   Future<bool> login(String username, String password) async {
     return await DatabaseHelper.instance.checkUser(username, password);
+    
   }
 
   Future<String?> register(Users user) async {

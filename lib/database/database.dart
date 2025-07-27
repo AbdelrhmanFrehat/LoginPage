@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/user.dart';
-import '../views/login.dart';
-import '../services/user.service.dart';
+import '../authentication/models/user.dart';
+import '../authentication/views/login.dart';
+import '../authentication/services/user.service.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privteConstractor();

@@ -218,6 +218,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login with Biometrics'**
   String get loginWithBiometric;
+
+  /// No description provided for @biometricPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify using face or fingerprint to log in'**
+  String get biometricPrompt;
+
+  /// No description provided for @emptyFieldsMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter both username and password'**
+  String get emptyFieldsMsg;
+
+  /// No description provided for @backToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'already have an acount? back for login'**
+  String get backToLogin;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
