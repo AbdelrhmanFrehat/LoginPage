@@ -20,7 +20,9 @@
   "ok": "OK",
   "vildot": "plz enter data",
   "usernameAlreadyExists": "This username is already taken.",
-  "loginWithBiometric": "Login with Biometrics","biometricPrompt": "Please verify using face or fingerprint to log in",
+  "loginWithBiometric": "Login with Biometrics",
+  "biometricPrompt": "Please verify using face or fingerprint to log in",
   "emptyFieldsMsg": "Please enter both username and password",
-  "backToLogin":"already have an acount? back for login"
+  "backToLogin": "already have an acount? back for login",
+  "loginWelcomeMessage": "Welcome! Please log in to access your dashboard."
 }

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "227635192903",
+    "project_id": "teacher-app-b1621",
+    "storage_bucket": "teacher-app-b1621.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227635192903:android:d80ee36068d1204fab3d62",
+        "android_client_info": {
+          "package_name": "com.example.teachar_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGV5Fnm_N0SwlaJvcZYNtZGglvABHGHig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227635192903:android:7329063a67af2cb7ab3d62",
+        "android_client_info": {
+          "package_name": "teacher.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGV5Fnm_N0SwlaJvcZYNtZGglvABHGHig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,10 +1,5 @@
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import '../authentication/models/user.dart';
-import '../authentication/views/login.dart';
-import '../authentication/services/user.service.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privteConstractor();
@@ -69,15 +64,21 @@ class DatabaseHelper {
 
   Future<bool> isUsernameExit(String username) async {
     final db = await database;
-    final result =
-        await db.query('Users', where: 'username=?', whereArgs: [username]);
+    final result = await db.query(
+      'Users',
+      where: 'username=?',
+      whereArgs: [username],
+    );
     return result.isNotEmpty;
   }
 
   Future<Users?> getUserByUsername(String username) async {
     final db = await database;
-    final result =
-        await db.query('Users', where: 'username=?', whereArgs: [username]);
+    final result = await db.query(
+      'Users',
+      where: 'username=?',
+      whereArgs: [username],
+    );
     if (result.isNotEmpty) {
       return Users.fromMap(result.first);
     } else {

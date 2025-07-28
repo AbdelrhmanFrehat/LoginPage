@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../models/user.dart';
@@ -43,68 +44,86 @@ class AuthenticationViewModel extends ChangeNotifier {
     return sha256.convert(utf8.encode(password)).toString();
   }
 
- Future<void> loginOrRegister(BuildContext context) async {
-  final localizations = AppLocalizations.of(context)!;
+  Future<void> loginOrRegister(BuildContext context) async {
+    final localizations = AppLocalizations.of(context)!;
 
-  if (user.username.isEmpty || user.password.isEmpty) {
-    resultMsg = localizations.emptyFieldsMsg;
-    notifyListeners();
-    return;
-  }
-
-  if (isRegisterMode) {
-    final exists = await _userService.checkUsernameExists(user.username);
-    if (exists) {
-      resultMsg = localizations.usernameAlreadyExists;
+    if (user.username.isEmpty || user.password.isEmpty) {
+      resultMsg = localizations.emptyFieldsMsg;
+      notifyListeners();
       return;
     }
 
-    user.password = hashPassword(user.password);
-    await _userService.register(user);
-    resultMsg = localizations.sucsessRegesterMsg;
-    toggleMode();
-  } else {
-    final hashedPassword = hashPassword(user.password);
-    final success = await _userService.login(user.username, hashedPassword);
-    if (success) {
-      await _storage.write(key: 'username', value: user.username);
-      await _storage.write(key: 'password', value: hashedPassword);
-      resultMsg = localizations.loginSucessMsg;
+    if (isRegisterMode) {
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: user.email,
+          password: user.password,
+        );
+
+        user.password = hashPassword(user.password);
+        await _userService.register(user);
+
+        await _userService.saveCredentials(user.username, user.password);
+
+        resultMsg = localizations.sucsessRegesterMsg;
+        toggleMode();
+      } on FirebaseAuthException catch (e) {
+        resultMsg = e.message ?? localizations.loginFailedMsg;
+      }
     } else {
-      resultMsg = localizations.loginFailedMsg;
-    }
-  }
-  notifyListeners();
-}
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: user.email,
+          password: user.password,
+        );
 
-
- Future<bool> biometricLogin(BuildContext context) async {
-  final localizations = AppLocalizations.of(context)!;
-  try {
-    bool isAuthenticated = await _localAuth.authenticate(
-      localizedReason: localizations.biometricPrompt,
-      options: const AuthenticationOptions(biometricOnly: true),
-    );
-
-    if (isAuthenticated) {
-      String? storedUsername = await _storage.read(key: 'username');
-      String? storedPassword = await _storage.read(key: 'password');
-
-      if (storedUsername != null && storedPassword != null) {
-        final success =
-            await _userService.login(storedUsername, storedPassword);
+        final hashedPassword = hashPassword(user.password);
+        final success = await _userService.login(user.username, hashedPassword);
         if (success) {
-          user.username = storedUsername;
-          user.password = storedPassword;
-          return true;
+          await _userService.saveCredentials(user.username, hashedPassword);
+          resultMsg = localizations.loginSucessMsg;
+        } else {
+          resultMsg = localizations.loginFailedMsg;
         }
+      } on FirebaseAuthException catch (e) {
+        resultMsg = e.message ?? localizations.loginFailedMsg;
       }
     }
-    return false;
-  } catch (e) {
-    print("Biometric error: $e");
-    return false;
-  }
-}
 
+    notifyListeners();
+  }
+
+  Future<bool> biometricLogin(BuildContext context) async {
+    final localizations = AppLocalizations.of(context)!;
+    try {
+      bool isAuthenticated = await _localAuth.authenticate(
+        localizedReason: localizations.biometricPrompt,
+        options: const AuthenticationOptions(biometricOnly: true),
+      );
+
+      if (isAuthenticated) {
+        final credentials = await _userService.getCredentials(
+          user.username,
+          user.password,
+        );
+
+        if (credentials['username'] != null &&
+            credentials['password'] != null) {
+          final success = await _userService.login(
+            credentials['username']!,
+            credentials['password']!,
+          );
+          if (success) {
+            user.username = credentials['username']!;
+            user.password = credentials['password']!;
+            return true;
+          }
+        }
+      }
+      return false;
+    } catch (e) {
+      print("Biometric error: $e");
+      return false;
+    }
+  }
 }

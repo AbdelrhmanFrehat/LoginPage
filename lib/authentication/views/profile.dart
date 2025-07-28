@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/user.dart';
@@ -15,21 +12,21 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-    final UserService _userService = UserService();
-      late Future<List<Users>> futureUsers;
+  final UserService _userService = UserService();
+  late Future<List<Users>> futureUsers;
 
   @override
   void initState() {
     super.initState();
-    futureUsers = _userService.getAllUsers(); // تحميل المستخدمين عند بداية الصفحة
+    futureUsers = _userService.getAllUsers();
   }
+
   final FlutterSecureStorage storage = FlutterSecureStorage();
 
-    void logout() async {
-      
-
+  void logout() async {
     Navigator.pushReplacementNamed(context, '/');
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -44,12 +41,9 @@ class _ProfileState extends State<Profile> {
           children: [
             Expanded(
               flex: 1,
-              child: ElevatedButton(
-                child: Text("Logout"),
-                onPressed:logout,
-              ),
+              child: ElevatedButton(onPressed: logout, child: Text("Logout")),
             ),
-           Expanded(
+            Expanded(
               child: FutureBuilder<List<Users>>(
                 future: futureUsers,
                 builder: (context, snapshot) {
@@ -62,7 +56,7 @@ class _ProfileState extends State<Profile> {
                   } else {
                     final users = snapshot.data!;
                     return ListView.builder(
-                      itemCount: users.length,  
+                      itemCount: users.length,
                       itemBuilder: (context, index) {
                         final user = users[index];
                         return ListTile(
@@ -75,7 +69,6 @@ class _ProfileState extends State<Profile> {
                 },
               ),
             ),
-    
           ],
         ),
       ),

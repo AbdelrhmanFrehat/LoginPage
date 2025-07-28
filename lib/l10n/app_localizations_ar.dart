@@ -1,4 +1,8 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
 
 /// The translations for Arabic (`ar`).
 class AppLocalizationsAr extends AppLocalizations {
@@ -68,11 +72,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginWithBiometric => 'تسجيل الدخول بالبصمة';
 
   @override
-  String get biometricPrompt => 'يرجى التحقق باستخدام بصمة الوجه أو الإصبع لتسجيل الدخول';
+  String get biometricPrompt =>
+      'يرجى التحقق باستخدام بصمة الوجه أو الإصبع لتسجيل الدخول';
 
   @override
   String get emptyFieldsMsg => 'الرجاء إدخال اسم المستخدم وكلمة المرور';
 
   @override
   String get backToLogin => 'لديك حساب بل فعل ؟ انتقل الى تسجيل الدخول';
+
+  @override
+  String get loginWelcomeMessage =>
+      'أهلاً بك! سجّل الدخول للمتابعة إلى لوحة التحكم.';
 }

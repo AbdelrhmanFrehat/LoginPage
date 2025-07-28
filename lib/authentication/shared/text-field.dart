@@ -8,7 +8,7 @@ class TextFieldShared extends StatelessWidget {
     super.key,
     required this.controller,
     required this.user,
-    required this.fieldName, // <-- جديد
+    required this.fieldName,
   });
 
   final TextEditingController controller;
@@ -32,9 +32,7 @@ class TextFieldShared extends StatelessWidget {
         _updateUser(value!, fieldName);
       },
       decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
         hintText: _getHintText(context, fieldName),
       ),
     );

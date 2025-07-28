@@ -1,4 +1,8 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
 
 /// The translations for English (`en`).
 class AppLocalizationsEn extends AppLocalizations {
@@ -68,11 +72,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginWithBiometric => 'Login with Biometrics';
 
   @override
-  String get biometricPrompt => 'Please verify using face or fingerprint to log in';
+  String get biometricPrompt =>
+      'Please verify using face or fingerprint to log in';
 
   @override
   String get emptyFieldsMsg => 'Please enter both username and password';
 
   @override
   String get backToLogin => 'already have an acount? back for login';
+
+  @override
+  String get loginWelcomeMessage =>
+      'Welcome! Please log in to access your dashboard.';
 }
