@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teachar_app/authentication/views/profile.dart';
@@ -17,12 +18,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+ if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
   await Firebase.initializeApp();
+  if (!kIsWeb) {
+
   await DatabaseHelper.instance.database;
+}
 
   runApp(MainApp(cruuntLang: const Locale("ar")));
 }
@@ -31,6 +35,7 @@ final lightTheme = ThemeData.light();
 final darkTheme = ThemeData.dark();
 
 class MainApp extends StatefulWidget {
+
   MainApp({super.key, required this.cruuntLang});
 
   var cruuntLang = Locale('ar');
@@ -47,7 +52,7 @@ class _MainAppState extends State<MainApp> {
   @override
   initState() {
     super.initState();
-    voidLoadDarkMode();
+     LoadDarkMode();
   }
 
   void changeCurrentLang() {
@@ -59,7 +64,7 @@ class _MainAppState extends State<MainApp> {
     });
   }
 
-  voidLoadDarkMode() async {
+  void LoadDarkMode() async {
     final storedValue = await _storage.read(key: 'isDarkMode');
 
     setState(() {

@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:teachar_app/authentication/models/user.dart';
+import 'package:teachar_app/authentication/services/user.service.dart';
 import 'package:teachar_app/authentication/view_models/authentication_view_model.dart';
 import 'package:teachar_app/theme_provider.dart';
 
@@ -13,16 +16,41 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   int _selectedIndex = 0;
+  final UserService _userService = UserService();
+  final storage = FlutterSecureStorage();
 
+   Users? user;
   @override
   void initState() {
     super.initState();
+    this.getuserData();
   }
+
+getuserData() async {
+  var userId = await storage.read(key: 'userId');
+  print('Raw userId: "$userId"');
+
+  if (userId != null && userId.trim().isNotEmpty) {
+    int parsedId = int.parse(userId.trim());
+    print('Parsed userId: $parsedId');
+
+    user = await _userService.getUserById(parsedId);
+
+    if (user != null) {
+      print(user?.fullname);
+    } else {
+    }
+
+    setState(() {});
+  } else {
+  }
+}
 
   static const TextStyle optionStyle = TextStyle(
     fontSize: 30,
     fontWeight: FontWeight.bold,
   );
+
   static const List<Widget> _widgetOptions = <Widget>[
     Text('Index 0: Home', style: optionStyle),
     Text('Index 1: Business', style: optionStyle),
@@ -54,14 +82,14 @@ class _MainViewState extends State<MainView> {
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'أ. أحمد الزعبي',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        user?.fullname ??'who are you',
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       Text(
-                        'ahmad.teacher@example.com',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        user?.email??'ahmad.teacher@example.com',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),

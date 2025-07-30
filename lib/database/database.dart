@@ -1,11 +1,13 @@
 import 'package:sqflite/sqflite.dart';
 import '../authentication/models/user.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privteConstractor();
   static final DatabaseHelper instance = DatabaseHelper._privteConstractor();
   static Database? _database;
   Future<Database> get database async => _database ??= await _initDatabase();
+  FirebaseDatabase firebaseDatabase = FirebaseDatabase.instance;
 
   Future<Database> _initDatabase() async {
     final databasePath = await getDatabasesPath();
@@ -49,7 +51,15 @@ class DatabaseHelper {
 
   Future<int> addUser(Users user) async {
     Database db = await instance.database;
+    final userId = user.id;
+    DatabaseReference ref = FirebaseDatabase.instance.ref("users/$userId");
 
+    await ref.set({
+      "fullname": user.fullname,
+      "phoneNumber": user.phoneNumber,
+      "email": user.email,
+      "username": user.username,
+    });
     return await db.insert('Users', user.toMap());
   }
 
@@ -85,4 +95,18 @@ class DatabaseHelper {
       return null;
     }
   }
+
+ Future<Users?> getUserById(int userId) async {
+  final ref = FirebaseDatabase.instance.ref();
+  final snapshot = await ref.child('users/$userId').get();
+
+  if (snapshot.exists && snapshot.value != null) {
+    final data = Map<String, dynamic>.from(snapshot.value as Map);
+    return Users.fromMap(data);
+  } else {
+    print('No data available.');
+    return null;
+  }
+}
+
 }

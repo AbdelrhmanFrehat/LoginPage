@@ -49,6 +49,8 @@ dependencies:
 
   sqflite_common_ffi: ^2.3.6
   firebase_auth: ^5.7.0
+  firebase_database: ^11.3.10
+  id_gen: ^0.7.8
 
 dev_dependencies:
   flutter_test:

@@ -1,13 +1,17 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:crypto/crypto.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:teachar_app/database/database.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../models/user.dart';
 import '../services/user.service.dart';
+import 'package:id_gen/id_gen_helpers.dart';
 
 class AuthenticationViewModel extends ChangeNotifier {
   final UserService _userService = UserService();
@@ -17,6 +21,7 @@ class AuthenticationViewModel extends ChangeNotifier {
   bool isRegisterMode = false;
   String resultMsg = "";
   Users user = Users(
+    id: 0,
     username: '',
     password: '',
     fullname: '',
@@ -31,6 +36,7 @@ class AuthenticationViewModel extends ChangeNotifier {
 
   void clearUser() {
     user = Users(
+      id: 0,
       username: '',
       password: '',
       fullname: '',
@@ -60,10 +66,16 @@ class AuthenticationViewModel extends ChangeNotifier {
           password: user.password,
         );
 
-        user.password = hashPassword(user.password);
-        await _userService.register(user);
+        user.id = genTimeId;
+        final hashedPassword = hashPassword(user.password);
+        user.password = hashedPassword;
 
-        await _userService.saveCredentials(user.username, user.password);
+        await _userService.register(user);
+        await _userService.saveCredentials(
+          user.username,
+          hashedPassword,
+          user.id!,
+        );
 
         resultMsg = localizations.sucsessRegesterMsg;
         toggleMode();
@@ -71,28 +83,95 @@ class AuthenticationViewModel extends ChangeNotifier {
         resultMsg = e.message ?? localizations.loginFailedMsg;
       }
     } else {
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: user.email,
-          password: user.password,
-        );
+     try {
+  Users? matchedUser;
 
-        final hashedPassword = hashPassword(user.password);
-        final success = await _userService.login(user.username, hashedPassword);
-        if (success) {
-          await _userService.saveCredentials(user.username, hashedPassword);
-          resultMsg = localizations.loginSucessMsg;
-        } else {
-          resultMsg = localizations.loginFailedMsg;
-        }
-      } on FirebaseAuthException catch (e) {
-        resultMsg = e.message ?? localizations.loginFailedMsg;
-      }
+  // 1. نحاول محليًا أولاً
+  matchedUser = await _userService.getUserByUsername(user.username);
+
+  if (matchedUser != null) {
+    final hashedInputPassword = hashPassword(user.password);
+    final localLoginSuccess = await _userService.login(user.username, hashedInputPassword);
+
+    if (localLoginSuccess) {
+      await _userService.saveCredentials(user.username, hashedInputPassword, matchedUser.id!);
+      user = matchedUser;
+      resultMsg = localizations.loginSucessMsg;
+      notifyListeners();
+      return;
+    } else {
+      resultMsg = localizations.loginFailedMsg;
+      notifyListeners();
+      return;
     }
-
-    notifyListeners();
   }
 
+  final connected = await checkInternetConnection(); // سنشرحها بعد قليل
+  if (!connected) {
+    resultMsg = "🚫 لا يوجد اتصال بالإنترنت ولا بيانات محلية.";
+    notifyListeners();
+    return;
+  }
+
+  final ref = FirebaseDatabase.instance.ref().child('users');
+  final snapshot = await ref.get();
+
+  if (!snapshot.exists) {
+    resultMsg = "❌ لا توجد قاعدة بيانات مستخدمين على Firebase.";
+    notifyListeners();
+    return;
+  }
+
+  final allUsers = Map<String, dynamic>.from(snapshot.value as Map);
+  for (var entry in allUsers.entries) {
+    final data = Map<String, dynamic>.from(entry.value);
+    if (data['username'] == user.username) {
+      matchedUser = Users(
+        id: int.parse(entry.key),
+        username: data['username'],
+        email: data['email'],
+        fullname: data['fullname'],
+        phoneNumber: data['phoneNumber'],
+        password: hashPassword(user.password),
+      );
+      break;
+    }
+  }
+
+  if (matchedUser == null) {
+    resultMsg = "❌ المستخدم غير موجود على Firebase.";
+    notifyListeners();
+    return;
+  }
+
+  await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: matchedUser!.email,
+    password: user.password,
+  );
+
+  await DatabaseHelper.instance.addUser(matchedUser!);
+  await _userService.saveCredentials(
+    matchedUser.username,
+    matchedUser.password,
+    matchedUser.id!,
+  );
+  user = matchedUser;
+  resultMsg = localizations.loginSucessMsg;
+} on FirebaseAuthException catch (e) {
+  resultMsg = e.message ?? localizations.loginFailedMsg;
+}
+
+    }
+    notifyListeners();
+  }
+Future<bool> checkInternetConnection() async {
+  try {
+    final result = await InternetAddress.lookup('google.com');
+    return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+  } catch (_) {
+    return false;
+  }
+}
   Future<bool> biometricLogin(BuildContext context) async {
     final localizations = AppLocalizations.of(context)!;
     try {
@@ -105,6 +184,7 @@ class AuthenticationViewModel extends ChangeNotifier {
         final credentials = await _userService.getCredentials(
           user.username,
           user.password,
+          user.id!,
         );
 
         if (credentials['username'] != null &&
@@ -116,6 +196,8 @@ class AuthenticationViewModel extends ChangeNotifier {
           if (success) {
             user.username = credentials['username']!;
             user.password = credentials['password']!;
+            await _userService.getUserById(int.parse(credentials['userid']!));
+
             return true;
           }
         }

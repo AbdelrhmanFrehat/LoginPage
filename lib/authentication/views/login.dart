@@ -53,12 +53,12 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return Center(
+          return  Expanded(
             child: SingleChildScrollView(
               child: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.88,
                 child: Container(
-                  child: Center(
+                  child: SingleChildScrollView(
                     child: Form(
                       key: _formKey,
                       child: Column(
