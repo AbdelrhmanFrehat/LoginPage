@@ -46,43 +46,48 @@ class DefaultFirebaseOptions {
     messagingSenderId: '227635192903',
     projectId: 'teacher-app-b1621',
     authDomain: 'teacher-app-b1621.firebaseapp.com',
+    databaseURL: 'https://teacher-app-b1621-default-rtdb.firebaseio.com',
     storageBucket: 'teacher-app-b1621.firebasestorage.app',
     measurementId: 'G-4ZCTZ1PCL8',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAGV5Fnm_N0SwlaJvcZYNtZGglvABHGHig',
-    appId: '1:227635192903:android:d80ee36068d1204fab3d62',
+    appId: '1:227635192903:android:4f6bba064a300c18ab3d62',
     messagingSenderId: '227635192903',
     projectId: 'teacher-app-b1621',
+    databaseURL: 'https://teacher-app-b1621-default-rtdb.firebaseio.com',
     storageBucket: 'teacher-app-b1621.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA5PbOBW29iMIALEBhoWMiLfb97gCdxTzQ',
-    appId: '1:227635192903:ios:a13037c8ea65e76dab3d62',
+    appId: '1:227635192903:ios:d76a32d7383951f3ab3d62',
     messagingSenderId: '227635192903',
     projectId: 'teacher-app-b1621',
+    databaseURL: 'https://teacher-app-b1621-default-rtdb.firebaseio.com',
     storageBucket: 'teacher-app-b1621.firebasestorage.app',
-    iosBundleId: 'com.example.teacharApp',
+    iosBundleId: 'com.example.teacherPortal',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyA5PbOBW29iMIALEBhoWMiLfb97gCdxTzQ',
-    appId: '1:227635192903:ios:a13037c8ea65e76dab3d62',
+    appId: '1:227635192903:ios:d76a32d7383951f3ab3d62',
     messagingSenderId: '227635192903',
     projectId: 'teacher-app-b1621',
+    databaseURL: 'https://teacher-app-b1621-default-rtdb.firebaseio.com',
     storageBucket: 'teacher-app-b1621.firebasestorage.app',
-    iosBundleId: 'com.example.teacharApp',
+    iosBundleId: 'com.example.teacherPortal',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDxSyS7QYfh-rSdHUn8AZOD0P2yhGkqDII',
-    appId: '1:227635192903:web:7f112960fca34223ab3d62',
+    appId: '1:227635192903:web:2b344c0659520716ab3d62',
     messagingSenderId: '227635192903',
     projectId: 'teacher-app-b1621',
     authDomain: 'teacher-app-b1621.firebaseapp.com',
+    databaseURL: 'https://teacher-app-b1621-default-rtdb.firebaseio.com',
     storageBucket: 'teacher-app-b1621.firebasestorage.app',
-    measurementId: 'G-3C1J9GRKCE',
+    measurementId: 'G-S3ZD1W4YVP',
   );
 }

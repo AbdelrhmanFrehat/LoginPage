@@ -1,6 +1,6 @@
 {
-    "name": "teachar_app",
-    "short_name": "teachar_app",
+    "name": "teacher_portal",
+    "short_name": "teacher_portal",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

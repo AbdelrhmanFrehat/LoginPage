@@ -1,4 +1,4 @@
-# teachar_app
+# teacher_portal
 
 A new Flutter project.
 
