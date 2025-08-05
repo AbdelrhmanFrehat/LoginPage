@@ -23,12 +23,16 @@ class _AddCourseViewState extends State<AddCourseView> {
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // ✅ جلب teacherId من Provider
-    final teacherId = context
-        .read<AuthenticationViewModel>()
-        .teacher
-        .id
-        .toString();
+    final authViewModel = context.read<AuthenticationViewModel>();
+
+    if (authViewModel.teacher == null || authViewModel.teacher!.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Could not find teacher data.')),
+      );
+      return;
+    }
+
+    final teacherId = authViewModel.teacher!.id!;
 
     final course = Course(
       teacherId: teacherId,

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:teacher_portal/auth/viewmodels/login_viewmodel.dart';
+import 'package:teacher_portal/dashboard/Viewmodels/dashboard_viewmodel.dart';
 import 'package:teacher_portal/database/db_helper.dart';
 import 'package:teacher_portal/firebase_database_service.dart';
+import 'package:teacher_portal/generated/app_localizations.dart'
+    show AppLocalizations;
 import 'package:teacher_portal/theme_provider.dart';
 import 'auth/views/login_view.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,12 +27,13 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => AuthenticationViewModel()),
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => DashboardViewModel()),
         ],
         child: const MyApp(),
       ),
     );
   } catch (e) {
-    print("❌ فشل في تهيئة Firebase: $e");
+    print("Firebase initialization failed: $e");
     runApp(const ErrorApp());
   }
 }
@@ -39,7 +44,11 @@ class ErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(body: Center(child: Text("حدث خطأ أثناء بدء التطبيق 🚫"))),
+      home: Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context)!.errorFirebaseInit),
+        ),
+      ),
     );
   }
 }
@@ -58,7 +67,8 @@ class MyApp extends StatelessWidget {
               ? ThemeMode.dark
               : ThemeMode.light,
           home: const LoginView(),
-          localizationsDelegates: [
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,

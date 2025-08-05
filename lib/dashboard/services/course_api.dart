@@ -8,11 +8,12 @@ class CourseApi extends CourseRepository {
     'courses',
   );
 
+  DatabaseReference ref(String path) => FirebaseDatabaseService().ref(path);
+
   @override
   Future<Course> create(Course course) async {
     final newRef = _coursesRef.push();
     await newRef.set(course.toMap());
-
     return course.copyWith(id: newRef.key);
   }
 
@@ -63,8 +64,7 @@ class CourseApi extends CourseRepository {
   }
 
   Future<List<Map<String, dynamic>>> getAssignments(String courseId) async {
-    final ref = FirebaseDatabaseService().ref('courses/$courseId/assignments');
-    final snapshot = await ref.get();
+    final snapshot = await ref('courses/$courseId/assignments').get();
 
     if (snapshot.exists) {
       final data = Map<String, dynamic>.from(snapshot.value as Map);
@@ -76,8 +76,7 @@ class CourseApi extends CourseRepository {
   }
 
   Future<List<Map<String, dynamic>>> getExams(String courseId) async {
-    final ref = FirebaseDatabaseService().ref('courses/$courseId/exams');
-    final snapshot = await ref.get();
+    final snapshot = await ref('courses/$courseId/exams').get();
 
     if (snapshot.exists) {
       final data = Map<String, dynamic>.from(snapshot.value as Map);

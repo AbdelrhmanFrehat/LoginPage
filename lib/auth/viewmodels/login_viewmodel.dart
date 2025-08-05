@@ -1,7 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:teacher_portal/auth/views/login_view.dart';
@@ -20,7 +17,9 @@ class AuthenticationViewModel extends ChangeNotifier {
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
 
-  bool isRegister = false;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
   String resultMsg = "";
 
   bool obscurePassword = true;
@@ -29,102 +28,136 @@ class AuthenticationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Teacher teacher = Teacher(
-    id: 0,
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-  );
+  Teacher? teacher;
 
-  String hashPassword(String password) {
-    return sha256.convert(utf8.encode(password)).toString();
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
   }
 
-  Future<void> loginOrRegister() async {
-    teacher = Teacher(
-      id: DateTime.now().millisecondsSinceEpoch,
-      fullName: fullNameController.text.trim(),
-      email: emailController.text.trim(),
-      phone: phoneController.text.trim(),
-      password: passwordController.text.trim(),
-    );
-
-    if (teacher.email.isEmpty || teacher.password.isEmpty) {
-      resultMsg = "الرجاء إدخال البريد الإلكتروني وكلمة المرور";
+  Future<void> register() async {
+    if (fullNameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        phoneController.text.isEmpty) {
+      resultMsg = "الرجاء إكمال جميع الحقول المطلوبة.";
       notifyListeners();
       return;
     }
 
-    final hashedPassword = hashPassword(teacher.password);
+    _setLoading(true);
 
-    if (isRegister) {
-      try {
-        await _auth.createUserWithEmailAndPassword(
-          email: teacher.email,
-          password: teacher.password,
-        );
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
+      final user = userCredential.user;
+      if (user != null) {
         teacher = Teacher(
-          id: teacher.id,
-          fullName: teacher.fullName,
-          email: teacher.email,
-          phone: teacher.phone,
-          password: hashedPassword,
+          id: user.uid,
+          fullName: fullNameController.text.trim(),
+          email: emailController.text.trim(),
+          phone: phoneController.text.trim(),
         );
 
-        await _teacherService.register(teacher);
-        await saveCredentials(teacher.email, hashedPassword);
+        await _teacherService.saveTeacherData(teacher!);
 
-        resultMsg = "✅ تم تسجيل الأستاذ بنجاح!";
-        isRegister = false;
-      } on FirebaseAuthException catch (e) {
-        resultMsg = e.message ?? "❌ فشل التسجيل";
+        resultMsg = "✅ تم تسجيل الحساب بنجاح!";
       }
-    } else {
-      final foundTeacher = await _teacherService.getByEmail(teacher.email);
-      if (foundTeacher != null && foundTeacher.password == hashedPassword) {
-        resultMsg = "✅ تسجيل الدخول ناجح";
-        teacher = foundTeacher;
-        await saveCredentials(teacher.email, hashedPassword);
-      } else {
-        resultMsg = "❌ البريد الإلكتروني أو كلمة المرور غير صحيحة";
-      }
+    } on FirebaseAuthException catch (e) {
+      resultMsg = e.message ?? "❌ فشل التسجيل";
+    } catch (e) {
+      resultMsg = "❌ حدث خطأ غير متوقع.";
     }
 
-    notifyListeners();
+    _setLoading(false);
   }
 
-  Future<void> saveCredentials(String email, String password) async {
-    await _storage.write(key: 'email', value: email);
-    await _storage.write(key: 'password', value: password);
+  Future<bool> login() async {
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      resultMsg = "الرجاء إدخال البريد الإلكتروني وكلمة المرور.";
+      notifyListeners();
+      return false;
+    }
+
+    _setLoading(true);
+
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      final user = userCredential.user;
+      if (user != null) {
+        teacher = await _teacherService.getTeacherById(user.uid);
+
+        if (teacher != null) {
+          resultMsg = "✅ تسجيل الدخول ناجح";
+          _setLoading(false);
+          await _storage.write(
+            key: 'email',
+            value: emailController.text.trim(),
+          );
+          await _storage.write(
+            key: 'password',
+            value: passwordController.text.trim(),
+          );
+          return true;
+        } else {
+          resultMsg = "❌ لم يتم العثور على بيانات لهذا المستخدم.";
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      resultMsg = e.code == 'user-not-found' || e.code == 'wrong-password'
+          ? "❌ البريد الإلكتروني أو كلمة المرور غير صحيحة."
+          : (e.message ?? "❌ فشل تسجيل الدخول");
+    } catch (e) {
+      resultMsg = "❌ حدث خطأ غير متوقع.";
+    }
+
+    _setLoading(false);
+    return false;
   }
 
-  Future<Map<String, String?>> getCredentials() async {
+  Future<bool> authenticateWithBiometrics() async {
     final email = await _storage.read(key: 'email');
     final password = await _storage.read(key: 'password');
-    return {'email': email, 'password': password};
-  }
+    if (email == null || password == null) {
+      resultMsg = "الرجاء تسجيل الدخول مرة واحدة على الأقل لتفعيل البصمة.";
+      return false;
+    }
 
-  Future<bool> loginWithBiometrics() async {
-    final creds = await getCredentials();
-    final email = creds['email'];
-    final password = creds['password'];
-    if (email != null && password != null) {
-      final foundTeacher = await _teacherService.getByEmail(email);
-      if (foundTeacher != null && foundTeacher.password == password) {
-        teacher = foundTeacher;
-        resultMsg = "✅ تسجيل الدخول بالبصمة ناجح";
-        notifyListeners();
-        return true;
+    final localAuth = LocalAuthentication();
+    try {
+      final canCheck = await localAuth.canCheckBiometrics;
+      if (!canCheck) return false;
+
+      final authenticated = await localAuth.authenticate(
+        localizedReason: 'الرجاء تأكيد هويتك بالبصمة',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+
+      if (authenticated) {
+        emailController.text = email;
+        passwordController.text = password;
+        return await login();
       }
+    } catch (e) {
+      print("❌ Biometric auth error: $e");
     }
     return false;
   }
 
   Future<void> logout(BuildContext context) async {
+    await _auth.signOut();
     await _storage.deleteAll();
-    teacher = Teacher(id: 0, fullName: '', email: '', phone: '', password: '');
+    teacher = null;
     notifyListeners();
 
     Future.microtask(() {
@@ -135,39 +168,20 @@ class AuthenticationViewModel extends ChangeNotifier {
     });
   }
 
-  Future<bool> checkInternet() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty;
-    } catch (_) {
-      return false;
-    }
-  }
+  Future<void> updateProfile(String newFullName, String newPhone) async {
+    if (teacher == null) return;
 
-  final LocalAuthentication auth = LocalAuthentication();
+    final updatedTeacher = Teacher(
+      id: teacher!.id,
+      fullName: newFullName,
+      email: teacher!.email,
+      phone: newPhone,
+    );
 
-  Future<bool> authenticateWithBiometrics() async {
-    try {
-      final canCheck = await auth.canCheckBiometrics;
-      final supported = await auth.isDeviceSupported();
+    await _teacherService.updateTeacherData(updatedTeacher);
 
-      if (!canCheck || !supported) return false;
-
-      final authenticated = await auth.authenticate(
-        localizedReason: 'الرجاء تأكيد هويتك بالبصمة',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
-      );
-
-      if (authenticated) {
-        return await loginWithBiometrics();
-      }
-    } catch (e) {
-      print("❌ Biometric auth error: $e");
-    }
-    return false;
+    teacher = updatedTeacher;
+    notifyListeners();
   }
 
   void disposeControllers() {

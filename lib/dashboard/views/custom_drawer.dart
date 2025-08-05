@@ -8,10 +8,10 @@ class CustomDrawer extends StatefulWidget {
   final ValueChanged<bool> onThemeChanged;
 
   const CustomDrawer({
-    Key? key,
+    super.key,
     required this.isDarkMode,
     required this.onThemeChanged,
-  }) : super(key: key);
+  });
 
   @override
   _CustomDrawerState createState() => _CustomDrawerState();

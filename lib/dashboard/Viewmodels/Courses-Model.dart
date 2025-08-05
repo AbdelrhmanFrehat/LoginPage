@@ -8,7 +8,7 @@ Future<List<Course>> fetchCoursesFromDatabase(BuildContext context) async {
   final courseApi = CourseApi();
   final teacherId = context
       .read<AuthenticationViewModel>()
-      .teacher
+      .teacher!
       .id
       .toString();
 

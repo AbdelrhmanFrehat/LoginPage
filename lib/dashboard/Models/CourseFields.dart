@@ -3,8 +3,7 @@ class CourseFields {
 
   static const String idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
   static const String textType = 'TEXT NOT NULL';
-  static const String realType =
-      'REAL NOT NULL'; // For storing doubles like progress
+  static const String realType = 'REAL NOT NULL';
 
   static const String id = '_id';
   static const String icon = 'icon';

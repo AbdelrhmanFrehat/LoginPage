@@ -1,334 +1,308 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:teacher_portal/dashboard/Models/Course-model.dart';
-import 'package:teacher_portal/database/models/assignment_model.dart';
-import 'package:teacher_portal/database/models/exam_model.dart';
-import 'package:teacher_portal/firebase_database_service.dart';
+import 'package:teacher_portal/dashboard/Viewmodels/course_details_viewmodel.dart';
+import 'package:teacher_portal/dashboard/views/add_exam_view.dart';
+import 'package:teacher_portal/dashboard/views/assignment-details-view.dart';
+import 'package:teacher_portal/dashboard/views/exam_submissions_view.dart';
+import 'package:teacher_portal/generated/app_localizations.dart';
 
-class CourseDetailsView extends StatefulWidget {
-  const CourseDetailsView({super.key, required this.course});
+class CourseDetailsView extends StatelessWidget {
   final Course course;
 
-  @override
-  State<CourseDetailsView> createState() => _CourseDetailsViewState();
-}
-
-class _CourseDetailsViewState extends State<CourseDetailsView> {
-  List<Map<String, dynamic>> _assignments = [];
-  List<Map<String, dynamic>> _exams = [];
-
-  final _db = FirebaseDatabaseService();
-
-  @override
-  void initState() {
-    super.initState();
-    loadDetails();
-  }
-
-  Future<void> loadDetails() async {
-    final assignmentsSnap = await _db
-        .ref('courses/${widget.course.id}/assignments')
-        .get();
-    final examsSnap = await _db.ref('courses/${widget.course.id}/exams').get();
-
-    if (assignmentsSnap.exists) {
-      final data = Map<String, dynamic>.from(assignmentsSnap.value as Map);
-      _assignments = data.entries
-          .map((e) => {'id': e.key, ...Map<String, dynamic>.from(e.value)})
-          .toList();
-    }
-
-    if (examsSnap.exists) {
-      final data = Map<String, dynamic>.from(examsSnap.value as Map);
-      _exams = data.entries
-          .map((e) => {'id': e.key, ...Map<String, dynamic>.from(e.value)})
-          .toList();
-    }
-
-    setState(() {});
-  }
-
-  Future<void> _addAssignment() async {
-    String? title;
-    DateTime? dueDate;
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Add Assignment"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(labelText: "Title"),
-              onChanged: (val) => title = val,
-            ),
-            TextButton(
-              child: Text("Select Due Date"),
-              onPressed: () async {
-                dueDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2023),
-                  lastDate: DateTime(2030),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (title != null && dueDate != null) {
-                final newAssignment = Assignment(
-                  title: title!,
-                  dueDate: dueDate!.toIso8601String(),
-                  submissions: 0,
-                );
-                final newRef = _db
-                    .ref('courses/${widget.course.id}/assignments')
-                    .push();
-                await newRef.set(newAssignment.toMap());
-                loadDetails();
-                Navigator.pop(context);
-              }
-            },
-            child: Text("Add"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _addExam() async {
-    String? title;
-    DateTime? dueDate;
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Add Exam"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(labelText: "Title"),
-              onChanged: (val) => title = val,
-            ),
-            TextButton(
-              child: Text("Select Due Date"),
-              onPressed: () async {
-                dueDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2023),
-                  lastDate: DateTime(2030),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (title != null && dueDate != null) {
-                final newExam = Exam(
-                  title: title!,
-                  date: dueDate!.toIso8601String(),
-                  submitted: 0,
-                );
-                final newRef = _db
-                    .ref('courses/${widget.course.id}/exams')
-                    .push();
-                await newRef.set(newExam.toMap());
-                loadDetails();
-                Navigator.pop(context);
-              }
-            },
-            child: Text("Add"),
-          ),
-        ],
-      ),
-    );
-  }
+  const CourseDetailsView({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.course.title ?? 'Course Details'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              // تعديل الكورس
-            },
-            icon: const Icon(Icons.edit),
+    return ChangeNotifierProvider(
+      create: (_) => CourseDetailsViewModel(course: course),
+      child: Consumer<CourseDetailsViewModel>(
+        builder: (context, viewModel, child) {
+          final l10n = AppLocalizations.of(context)!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(course.title),
+              actions: [
+                IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
+              ],
+            ),
+            body: viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildContent(context, viewModel, l10n),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+    AppLocalizations l10n,
+  ) {
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: [
+              Tab(text: l10n.enrolledStudents),
+              Tab(text: l10n.assignments),
+              Tab(text: l10n.exams),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _buildStudentsList(context, viewModel),
+                _buildListSection(
+                  context,
+                  viewModel,
+                  l10n,
+                  type: 'assignments',
+                ),
+                _buildListSection(context, viewModel, l10n, type: 'exams'),
+              ],
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Overall Course Progress"),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(value: 0.65),
-            const SizedBox(height: 24),
-            const Text(
-              "Enrolled Students",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    );
+  }
+
+  Widget _buildStudentsList(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+  ) {
+    if (viewModel.students.isEmpty) {
+      return Center(
+        child: Text(AppLocalizations.of(context)!.noStudentsEnrolled),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: viewModel.students.length,
+      itemBuilder: (context, index) {
+        final student = viewModel.students[index];
+        return Card(
+          child: ListTile(
+            leading: CircleAvatar(
+              child: Text(student['name']?.substring(0, 1) ?? 'U'),
             ),
-            const SizedBox(height: 12),
-            ..._buildStudentsList(),
-            const SizedBox(height: 24),
-            _sectionHeader("Assignments", onAdd: _addAssignment),
-            ..._buildAssignmentsList(),
-            const SizedBox(height: 24),
-            _sectionHeader("Exams", onAdd: _addExam),
-            ..._buildExamsList(),
-            const SizedBox(height: 24),
-            const Text(
-              "Send Notification",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: "Type your message...",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              items: const [
-                DropdownMenuItem(value: "all", child: Text("All Students")),
-                DropdownMenuItem(
-                  value: "submitted",
-                  child: Text("Submitted Only"),
-                ),
-                DropdownMenuItem(
-                  value: "not_submitted",
-                  child: Text("Not Submitted Only"),
-                ),
-              ],
-              onChanged: (val) {},
-              decoration: const InputDecoration(labelText: "Send to"),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () {
-                // send notification
+            title: Text(student['name'] ?? ''),
+            subtitle: Text(student['email'] ?? ''),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildListSection(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+    AppLocalizations l10n, {
+    required String type,
+  }) {
+    final items = type == 'assignments'
+        ? viewModel.assignments
+        : viewModel.exams;
+    final onAdd = type == 'assignments'
+        ? () => _addAssignmentDialog(context, viewModel, l10n)
+        : () => _addExam(context, viewModel);
+
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: onAdd,
+        child: const Icon(Icons.add),
+      ),
+      body: items.isEmpty
+          ? Center(child: Text('No ${type} added yet.'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return _buildListItemCard(context, viewModel, l10n, item, type);
               },
-              icon: const Icon(Icons.send),
-              label: const Text("Send Notification"),
             ),
-          ],
+    );
+  }
+
+  Widget _buildListItemCard(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+    AppLocalizations l10n,
+    Map<String, dynamic> item,
+    String type,
+  ) {
+    final totalStudents = viewModel.course.enrolledStudents.length;
+    final submissionsRaw = item["submissions"];
+    final submissionsCount = submissionsRaw is Map ? submissionsRaw.length : 0;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ListTile(
+        leading: CircleAvatar(
+          child: Icon(type == 'assignments' ? Icons.assignment : Icons.quiz),
         ),
+        title: Text(item["title"] ?? ''),
+        subtitle: Text(
+          l10n.submissionsCount(
+            submissionsCount.toString(),
+            totalStudents.toString(),
+          ),
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          onPressed: () =>
+              _confirmDeleteDialog(context, viewModel, l10n, item['id'], type),
+        ),
+        onTap: () {
+          if (type == 'assignments') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AssignmentDetailsView(
+                  courseId: viewModel.course.id!,
+                  assignmentId: item["id"],
+                  title: item["title"],
+                  enrolledStudents: viewModel.students,
+                ),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ExamSubmissionsView(
+                  courseId: viewModel.course.id!,
+                  examId: item["id"],
+                  title: item["title"] ?? '',
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
 
-  Widget _sectionHeader(String title, {required VoidCallback onAdd}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        IconButton(onPressed: onAdd, icon: const Icon(Icons.add)),
-      ],
+  Future<void> _addAssignmentDialog(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+    AppLocalizations l10n,
+  ) async {
+    final titleController = TextEditingController();
+    DateTime? dueDate = DateTime.now();
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text(l10n.addAssignment),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(labelText: l10n.title),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  title: Text(l10n.selectDueDate),
+                  // تحقق أولاً إذا كان dueDate لا يساوي null
+                  subtitle: Text(
+                    dueDate != null
+                        ? dueDate!.toIso8601String().split('T')[0]
+                        : 'No date selected',
+                  ), // أو أي نص افتراضي آخر
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: dueDate!,
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2100),
+                    );
+                    if (pickedDate != null) {
+                      setDialogState(() => dueDate = pickedDate);
+                    }
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(l10n.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (titleController.text.isNotEmpty && dueDate != null) {
+                    await viewModel.addAssignment(
+                      titleController.text,
+                      dueDate!,
+                    );
+                    Navigator.pop(dialogContext);
+                  }
+                },
+                child: Text(l10n.add),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  List<Widget> _buildStudentsList() {
-    final students = [
-      {
-        "name": "Alice Johnson",
-        "email": "alice.j@example.com",
-        "progress": 0.8,
-        "submitted": true,
-      },
-      {
-        "name": "Bob Smith",
-        "email": "bob.s@example.com",
-        "progress": 0.5,
-        "submitted": false,
-      },
-      {
-        "name": "Carol White",
-        "email": "carol.w@example.com",
-        "progress": 0.7,
-        "submitted": true,
-      },
-    ];
-
-    return students.map((student) {
-      return Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        child: ListTile(
-          title: Text(student["name"]?.toString() ?? ''),
-          subtitle: Text(student["email"]?.toString() ?? ''),
-          trailing: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                student["submitted"] == true
-                    ? "✅ Submitted"
-                    : "❌ Not Submitted",
-              ),
-              const SizedBox(height: 4),
-              SizedBox(
-                width: 80,
-                child: LinearProgressIndicator(
-                  value: double.tryParse(
-                    student["progress"]?.toString() ?? '0',
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }).toList();
+  Future<void> _addExam(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+  ) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddExamView(courseId: viewModel.course.id!),
+      ),
+    );
+    viewModel.loadAssignmentsAndExams(); // Refresh after returning
   }
 
-  List<Widget> _buildAssignmentsList() {
-    return _assignments.map((item) {
-      return Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        child: ListTile(
-          title: Text(item["title"] ?? ''),
-          subtitle: Text(
-            "Due: ${item["dueDate"]} - ${item["submissions"]} submissions",
-          ),
-          trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+  Future<void> _confirmDeleteDialog(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+    AppLocalizations l10n,
+    String id,
+    String type,
+  ) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l10n.confirmDelete),
+        content: Text(
+          type == 'assignments'
+              ? l10n.confirmDeleteAssignment
+              : l10n.confirmDeleteExam,
         ),
-      );
-    }).toList();
-  }
-
-  List<Widget> _buildExamsList() {
-    return _exams.map((item) {
-      return Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        child: ListTile(
-          title: Text(item["title"] ?? ''),
-          subtitle: Text(
-            "Due: ${item["dueDate"]} - ${item["submissions"]} students",
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
           ),
-          trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () {}),
-        ),
-      );
-    }).toList();
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      if (type == 'assignments') {
+        await viewModel.deleteAssignment(id);
+      } else {
+        await viewModel.deleteExam(id);
+      }
+    }
   }
 }
