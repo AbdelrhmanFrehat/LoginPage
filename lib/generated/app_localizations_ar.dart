@@ -260,4 +260,116 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get saveGrade => 'حفظ الدرجة';
+
+  @override
+  String get addNewCourse => 'إضافة كورس جديد';
+
+  @override
+  String get courseTitle => 'عنوان الكورس';
+
+  @override
+  String get courseTitleHint => 'مثال: الجبر 101';
+
+  @override
+  String get icon => 'أيقونة';
+
+  @override
+  String get iconHint => 'أدخل رمز تعبيري، مثال: 📚';
+
+  @override
+  String get status => 'الحالة';
+
+  @override
+  String get progress => 'التقدم';
+
+  @override
+  String get addCourse => 'إضافة الكورس';
+
+  @override
+  String get fieldRequired => 'هذا الحقل مطلوب';
+
+  @override
+  String courseAddedSuccess(Object title) {
+    return 'تمت إضافة الكورس \'$title\' بنجاح!';
+  }
+
+  @override
+  String courseAddedError(Object error) {
+    return 'فشلت إضافة الكورس: $error';
+  }
+
+  @override
+  String get teacherDataNotFound => 'خطأ: لم يتم العثور على بيانات المعلم.';
+
+  @override
+  String get myCourses => 'كورساتي';
+
+  @override
+  String get noCoursesAdded => 'لم تتم إضافة أي كورسات بعد.';
+
+  @override
+  String errorLoadingCourses(Object error) {
+    return 'خطأ في تحميل الكورسات: $error';
+  }
+
+  @override
+  String get upcomingAssignments => 'الواجبات القادمة';
+
+  @override
+  String get noUpcomingAssignments => 'لا توجد واجبات قادمة.';
+
+  @override
+  String get todaysSummary => 'ملخص اليوم';
+
+  @override
+  String get pendingAssignments => 'واجبات معلقة';
+
+  @override
+  String get scheduledExams => 'اختبارات مجدولة';
+
+  @override
+  String get noExamsScheduled => 'لا توجد اختبارات مجدولة.';
+
+  @override
+  String get upcoming => 'قادم';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get completed => 'مكتمل';
+
+  @override
+  String get keyMetrics => 'المقاييس الرئيسية';
+
+  @override
+  String get totalStudents => 'إجمالي الطلاب';
+
+  @override
+  String get totalCourses => 'إجمالي الكورسات';
+
+  @override
+  String get assignmentsGraded => 'واجبات تم تقييمها';
+
+  @override
+  String get examsHeld => 'اختبارات تم عقدها';
+
+  @override
+  String get performanceInsights => 'رؤى الأداء';
+
+  @override
+  String get assignmentSubmissions => 'تسليمات الواجبات';
+
+  @override
+  String get assignmentSubmissionsSubtitle =>
+      'نظرة عامة على التسليمات في جميع الكورسات.';
+
+  @override
+  String get weekly => 'أسبوعي';
+
+  @override
+  String get monthly => 'شهري';
+
+  @override
+  String get custom => 'مخصص';
 }

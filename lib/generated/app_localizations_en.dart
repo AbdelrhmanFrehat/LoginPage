@@ -260,4 +260,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveGrade => 'Save Grade';
+
+  @override
+  String get addNewCourse => 'Add New Course';
+
+  @override
+  String get courseTitle => 'Course Title';
+
+  @override
+  String get courseTitleHint => 'e.g., Algebra 101';
+
+  @override
+  String get icon => 'Icon';
+
+  @override
+  String get iconHint => 'Enter an emoji, e.g., 📚';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get progress => 'Progress';
+
+  @override
+  String get addCourse => 'Add Course';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
+  String courseAddedSuccess(Object title) {
+    return 'Course \'$title\' added successfully!';
+  }
+
+  @override
+  String courseAddedError(Object error) {
+    return 'Failed to add course: $error';
+  }
+
+  @override
+  String get teacherDataNotFound => 'Error: Could not find teacher data.';
+
+  @override
+  String get myCourses => 'My Courses';
+
+  @override
+  String get noCoursesAdded => 'No courses have been added yet.';
+
+  @override
+  String errorLoadingCourses(Object error) {
+    return 'Error loading courses: $error';
+  }
+
+  @override
+  String get upcomingAssignments => 'Upcoming Assignments';
+
+  @override
+  String get noUpcomingAssignments => 'No upcoming assignments.';
+
+  @override
+  String get todaysSummary => 'Today\'s Summary';
+
+  @override
+  String get pendingAssignments => 'Pending Assignments';
+
+  @override
+  String get scheduledExams => 'Scheduled Exams';
+
+  @override
+  String get noExamsScheduled => 'No exams scheduled.';
+
+  @override
+  String get upcoming => 'Upcoming';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get keyMetrics => 'Key Metrics';
+
+  @override
+  String get totalStudents => 'Total Students';
+
+  @override
+  String get totalCourses => 'Total Courses';
+
+  @override
+  String get assignmentsGraded => 'Assignments Graded';
+
+  @override
+  String get examsHeld => 'Exams Held';
+
+  @override
+  String get performanceInsights => 'Performance Insights';
+
+  @override
+  String get assignmentSubmissions => 'Assignment Submissions';
+
+  @override
+  String get assignmentSubmissionsSubtitle =>
+      'Overview of submissions across all courses.';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get custom => 'Custom';
 }

@@ -28,4 +28,15 @@ class FirebaseDatabaseService {
     );
     return db.ref(path);
   }
+  void listenToAssignmentSubmissions(Function(Map submission) onNewSubmission) {
+  final submissionsRef = ref('assignments_submissions');
+
+  submissionsRef.onChildAdded.listen((event) {
+    final data = event.snapshot.value;
+    if (data is Map) {
+      onNewSubmission(data);
+    }
+  });
+}
+
 }

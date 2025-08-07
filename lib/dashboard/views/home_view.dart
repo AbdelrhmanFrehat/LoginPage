@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:teacher_portal/dashboard/Viewmodels/dashboard_viewmodel.dart';
 import 'package:teacher_portal/dashboard/views/custom_drawer.dart';
 import 'package:teacher_portal/dashboard/views/dashboard_view.dart';
 import 'package:teacher_portal/dashboard/views/main_page_view.dart';
+import 'package:teacher_portal/dashboard/views/notifications_view.dart';
 import 'package:teacher_portal/dashboard/views/profile_view.dart';
-import 'package:teacher_portal/theme_provider.dart';
+import 'package:teacher_portal/l10n/LocaleProvider.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -16,11 +18,15 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    MainPageView(),
-    DashboardView(),
-    ProfileView(),
+  List<Widget> get _widgetOptions => <Widget>[
+    const MainPageView(),
+    ChangeNotifierProvider(
+      create: (_) => DashboardViewModel(),
+      child: const DashboardView(),
+    ),
+    const ProfileView(),
   ];
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -37,32 +43,40 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FA),
-
-      drawer: CustomDrawer(
-        isDarkMode: context.watch<ThemeProvider>().isDarkMode,
-        onThemeChanged: (val) {
-          context.read<ThemeProvider>().toggleTheme(val);
-        },
-      ),
+      drawer: CustomDrawer(),
 
       appBar: AppBar(
-        title: Text(
-          _appBarTitles[_selectedIndex],
-          style: const TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
+        title: Text(_appBarTitles[_selectedIndex]),
         elevation: 0,
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            icon: const Icon(Icons.language),
+            tooltip: "Change Language",
+            onPressed: () {
+              context.read<LocaleProvider>().toggleLocale();
+            },
           ),
-          const CircleAvatar(
-            backgroundColor: Colors.blueGrey,
-            child: Icon(Icons.person, color: Colors.white),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsView(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.notifications_none),
+            tooltip: "Notifications",
           ),
+          IconButton(
+            onPressed: () {
+              _onItemTapped(2); 
+            },
+            icon: const CircleAvatar(child: Icon(Icons.person)),
+            tooltip: "Profile",
+          ),
+
           const SizedBox(width: 10),
         ],
       ),
@@ -71,9 +85,7 @@ class _HomeViewState extends State<HomeView> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
+
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(

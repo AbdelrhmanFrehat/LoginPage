@@ -13,7 +13,6 @@ class ProfileView extends StatelessWidget {
     final teacher = authViewModel.teacher;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FA),
       body: teacher == null
           ? _buildErrorState()
           : _buildProfileContent(context, authViewModel, teacher),
@@ -28,13 +27,11 @@ class ProfileView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        // --- Profile Header ---
         Center(
           child: Column(
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.blue.shade100,
                 child: Text(
                   teacher.fullName.isNotEmpty
                       ? teacher.fullName[0].toUpperCase()
@@ -77,7 +74,6 @@ class ProfileView extends StatelessWidget {
                 title: const Text('Edit Profile'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // Navigate to the new edit profile page
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const EditProfileView()),

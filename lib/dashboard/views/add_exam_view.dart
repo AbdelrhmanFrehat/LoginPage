@@ -422,8 +422,9 @@ class AddExamView extends StatelessWidget {
                         .toList();
                     if (opts.length < 2 ||
                         correctIndex == null ||
-                        correctIndex! >= opts.length)
+                        correctIndex! >= opts.length) {
                       return;
+                    }
                     base['options'] = opts;
                     base['correctAnswer'] = opts[correctIndex!];
                   }

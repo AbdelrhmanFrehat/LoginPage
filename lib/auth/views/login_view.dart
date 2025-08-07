@@ -1,14 +1,50 @@
 // lib/auth/views/login_view.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teacher_portal/auth/views/register_view.dart';
 import 'package:teacher_portal/dashboard/views/home_view.dart';
 import 'package:teacher_portal/auth/viewmodels/login_viewmodel.dart';
+import 'package:teacher_portal/l10n/LocaleProvider.dart';
+
+import '../services/teacher_service.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
+Future<void> updateTeacherFcmToken() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    print("❌ No authenticated user found.");
+    return;
+  }
 
+  final token = await FirebaseMessaging.instance.getToken();
+  if (token == null) {
+    print("❌ Could not get FCM token.");
+    return;
+  }
+
+  final teacherService = TeacherService();
+  final teacher = await teacherService.getTeacherById(user.uid);
+
+  if (teacher == null) {
+    print("❌ Teacher not found.");
+    return;
+  }
+
+  if (!teacher.fcmTokens.contains(token)) {
+    final updatedTeacher = teacher.copyWith(
+      fcmTokens: [...teacher.fcmTokens, token],
+    );
+
+    await teacherService.saveTeacherData(updatedTeacher); // يخزنها في الاثنين
+    print("✅ FCM token added and teacher data updated.");
+  } else {
+    print("ℹ️ FCM token already exists for this teacher.");
+  }
+}
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AuthenticationViewModel>();
@@ -39,11 +75,8 @@ class LoginView extends StatelessWidget {
       child: IconButton(
         icon: const Icon(Icons.language, color: Colors.blue),
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Language switching logic goes here!'),
-            ),
-          );
+                  context.read<LocaleProvider>().toggleLocale();
+
         },
       ),
     );
@@ -129,6 +162,7 @@ class LoginView extends StatelessWidget {
                             SnackBar(content: Text(viewModel.resultMsg)),
                           );
                           if (success) {
+                              await updateTeacherFcmToken();  
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(

@@ -559,6 +559,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Grade'**
   String get saveGrade;
+
+  /// No description provided for @addNewCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Course'**
+  String get addNewCourse;
+
+  /// No description provided for @courseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Course Title'**
+  String get courseTitle;
+
+  /// No description provided for @courseTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Algebra 101'**
+  String get courseTitleHint;
+
+  /// No description provided for @icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get icon;
+
+  /// No description provided for @iconHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an emoji, e.g., 📚'**
+  String get iconHint;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get progress;
+
+  /// No description provided for @addCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Course'**
+  String get addCourse;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
+
+  /// No description provided for @courseAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Course \'{title}\' added successfully!'**
+  String courseAddedSuccess(Object title);
+
+  /// No description provided for @courseAddedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add course: {error}'**
+  String courseAddedError(Object error);
+
+  /// No description provided for @teacherDataNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: Could not find teacher data.'**
+  String get teacherDataNotFound;
+
+  /// No description provided for @myCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'My Courses'**
+  String get myCourses;
+
+  /// No description provided for @noCoursesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No courses have been added yet.'**
+  String get noCoursesAdded;
+
+  /// No description provided for @errorLoadingCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading courses: {error}'**
+  String errorLoadingCourses(Object error);
+
+  /// No description provided for @upcomingAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Assignments'**
+  String get upcomingAssignments;
+
+  /// No description provided for @noUpcomingAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming assignments.'**
+  String get noUpcomingAssignments;
+
+  /// No description provided for @todaysSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Summary'**
+  String get todaysSummary;
+
+  /// No description provided for @pendingAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Assignments'**
+  String get pendingAssignments;
+
+  /// No description provided for @scheduledExams.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled Exams'**
+  String get scheduledExams;
+
+  /// No description provided for @noExamsScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'No exams scheduled.'**
+  String get noExamsScheduled;
+
+  /// No description provided for @upcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get upcoming;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @keyMetrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Metrics'**
+  String get keyMetrics;
+
+  /// No description provided for @totalStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Students'**
+  String get totalStudents;
+
+  /// No description provided for @totalCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Courses'**
+  String get totalCourses;
+
+  /// No description provided for @assignmentsGraded.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignments Graded'**
+  String get assignmentsGraded;
+
+  /// No description provided for @examsHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Exams Held'**
+  String get examsHeld;
+
+  /// No description provided for @performanceInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance Insights'**
+  String get performanceInsights;
+
+  /// No description provided for @assignmentSubmissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment Submissions'**
+  String get assignmentSubmissions;
+
+  /// No description provided for @assignmentSubmissionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview of submissions across all courses.'**
+  String get assignmentSubmissionsSubtitle;
+
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthly;
+
+  /// No description provided for @custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get custom;
 }
 
 class _AppLocalizationsDelegate

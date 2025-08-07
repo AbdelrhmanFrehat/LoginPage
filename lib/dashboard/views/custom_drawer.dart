@@ -1,48 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teacher_portal/auth/viewmodels/login_viewmodel.dart';
+import 'package:teacher_portal/dashboard/views/about_view.dart';
+import 'package:teacher_portal/dashboard/views/notifications_view.dart';
 import 'package:teacher_portal/theme_provider.dart';
 
-class CustomDrawer extends StatefulWidget {
-  final bool isDarkMode;
-  final ValueChanged<bool> onThemeChanged;
+class CustomDrawer extends StatelessWidget {
+  const CustomDrawer({super.key});
 
-  const CustomDrawer({
-    super.key,
-    required this.isDarkMode,
-    required this.onThemeChanged,
-  });
-
-  @override
-  _CustomDrawerState createState() => _CustomDrawerState();
-}
-
-class _CustomDrawerState extends State<CustomDrawer> {
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthenticationViewModel>();
+    final teacher = authViewModel.teacher;
+
     return Drawer(
       child: Column(
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text("Sarah Johnson"),
-            accountEmail: Text("sarah.j@example.com"),
+            accountName: Text(teacher?.fullName ?? 'Teacher Name'),
+            accountEmail: Text(teacher?.email ?? 'teacher@example.com'),
             currentAccountPicture: CircleAvatar(
-              backgroundImage: AssetImage(
-                'assets/images/profile.jpg',
-              ), // Replace with your asset
+              backgroundColor: Colors.white,
+              child: Text(
+                teacher?.fullName.isNotEmpty == true
+                    ? teacher!.fullName[0].toUpperCase()
+                    : 'T',
+                style: const TextStyle(fontSize: 40.0, color: Colors.blue),
+              ),
             ),
+            decoration: const BoxDecoration(color: Colors.blue),
           ),
+
           ListTile(
-            leading: Icon(Icons.person_outline),
-            title: Text('Profile'),
-            subtitle: Text('Manage your personal information'),
+            leading: const Icon(Icons.person_outline),
+            title: const Text('Profile'),
+            subtitle: const Text('Manage your personal information'),
             onTap: () {
-              // Handle profile tap
+              Navigator.pop(context);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Profile tab is already in the main view."),
+                ),
+              );
             },
           ),
+
           ListTile(
-            leading: Icon(Icons.brightness_6_outlined),
-            title: Text('Dark Mode'),
+            leading: const Icon(Icons.brightness_6_outlined),
+            title: const Text('Dark Mode'),
             trailing: Switch(
               value: context.watch<ThemeProvider>().isDarkMode,
               onChanged: (val) {
@@ -50,32 +56,42 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
           ),
+
           ListTile(
-            leading: Icon(Icons.notifications_none),
-            title: Text('Notifications'),
-            subtitle: Text('View real-time alerts'),
+            leading: const Icon(Icons.notifications_none),
+            title: const Text('Notifications'),
+            subtitle: const Text('View real-time alerts'),
             onTap: () {
-              // Handle notifications
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('About'),
-            subtitle: Text('App info and developers'),
-            onTap: () {
-              // Handle about
-            },
-          ),
-          const Spacer(),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout'),
-            onTap: () {
-              Provider.of<AuthenticationViewModel>(
+              Navigator.pop(context);
+              Navigator.push(
                 context,
-                listen: false,
-              ).logout(context);
+                MaterialPageRoute(builder: (_) => const NotificationsView()),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('About'),
+            subtitle: const Text('App info and developers'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutView()),
+              );
+            },
+          ),
+
+          const Spacer(),
+
+          const Divider(),
+
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Logout', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              authViewModel.logout(context);
             },
           ),
         ],

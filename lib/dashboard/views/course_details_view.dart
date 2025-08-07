@@ -21,6 +21,7 @@ class CourseDetailsView extends StatelessWidget {
           final l10n = AppLocalizations.of(context)!;
           return Scaffold(
             appBar: AppBar(
+              
               title: Text(course.title),
               actions: [
                 IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
@@ -41,7 +42,7 @@ class CourseDetailsView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Column(
         children: [
           TabBar(
@@ -49,7 +50,9 @@ class CourseDetailsView extends StatelessWidget {
               Tab(text: l10n.enrolledStudents),
               Tab(text: l10n.assignments),
               Tab(text: l10n.exams),
-            ],
+              const Tab(text: ' إرسال إشعار'),
+            ],isScrollable: true
+
           ),
           Expanded(
             child: TabBarView(
@@ -62,6 +65,7 @@ class CourseDetailsView extends StatelessWidget {
                   type: 'assignments',
                 ),
                 _buildListSection(context, viewModel, l10n, type: 'exams'),
+                _buildNotificationTab(context, viewModel),
               ],
             ),
           ),
@@ -116,7 +120,7 @@ class CourseDetailsView extends StatelessWidget {
         child: const Icon(Icons.add),
       ),
       body: items.isEmpty
-          ? Center(child: Text('No ${type} added yet.'))
+          ? Center(child: Text('No $type added yet.'))
           : ListView.builder(
               padding: const EdgeInsets.all(8),
               itemCount: items.length,
@@ -266,7 +270,7 @@ class CourseDetailsView extends StatelessWidget {
         builder: (_) => AddExamView(courseId: viewModel.course.id!),
       ),
     );
-    viewModel.loadAssignmentsAndExams(); // Refresh after returning
+    viewModel.loadAssignmentsAndExams();
   }
 
   Future<void> _confirmDeleteDialog(
@@ -304,5 +308,57 @@ class CourseDetailsView extends StatelessWidget {
         await viewModel.deleteExam(id);
       }
     }
+  }
+
+  Widget _buildNotificationTab(
+    BuildContext context,
+    CourseDetailsViewModel viewModel,
+  ) {
+    final controller = TextEditingController();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '📝 اكتب نص الإشعار:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: controller,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              hintText: 'اكتب هنا...',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () async {
+              final text = controller.text.trim();
+              if (text.isEmpty) return;
+
+              await viewModel.sendNotificationToEnrolledStudents(
+                viewModel.course.id!,
+                text,
+              );
+
+              if (!context.mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("✅ تم إرسال الإشعار بنجاح!")),
+              );
+
+              controller.clear();
+            },
+
+            icon: const Icon(Icons.send),
+            label: const Text("إرسال الإشعار"),
+          ),
+        ],
+      ),
+    );
   }
 }

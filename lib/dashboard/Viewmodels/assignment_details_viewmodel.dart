@@ -100,4 +100,19 @@ class AssignmentDetailsViewModel extends ChangeNotifier {
         "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
     return "$date $time";
   }
+  void listenToNewSubmissions(Function(String studentName) onNewSubmission) {
+  final submissionsRef = _db.ref(
+    'courses/$courseId/assignments/$assignmentId/submissions',
+  );
+
+  submissionsRef.onChildAdded.listen((event) {
+    final data = event.snapshot.value;
+    if (data is Map) {
+      final studentId = data['studentId'];
+      final studentName = _studentNames[studentId] ?? 'طالب مجهول';
+      onNewSubmission(studentName);
+    }
+  });
+}
+
 }

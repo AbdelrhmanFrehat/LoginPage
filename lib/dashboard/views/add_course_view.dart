@@ -1,120 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teacher_portal/auth/viewmodels/login_viewmodel.dart';
-import '../Models/Course-model.dart';
-import '../services/course_api.dart';
+import 'package:teacher_portal/dashboard/Models/Course-model.dart';
+import 'package:teacher_portal/dashboard/viewmodels/add_course_viewmodel.dart';
+import 'package:teacher_portal/generated/app_localizations.dart';
 
-class AddCourseView extends StatefulWidget {
+class AddCourseView extends StatelessWidget {
   const AddCourseView({super.key});
 
   @override
-  State<AddCourseView> createState() => _AddCourseViewState();
-}
-
-class _AddCourseViewState extends State<AddCourseView> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _iconController = TextEditingController();
-  double _progress = 0.0;
-  CourseStatus _selectedStatus = CourseStatus.inProgress;
-
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-
-  void _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final authViewModel = context.read<AuthenticationViewModel>();
-
-    if (authViewModel.teacher == null || authViewModel.teacher!.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Could not find teacher data.')),
-      );
-      return;
-    }
-
-    final teacherId = authViewModel.teacher!.id!;
-
-    final course = Course(
-      teacherId: teacherId,
-      title: _titleController.text.trim(),
-      icon: _iconController.text.trim(),
-      progress: _progress,
-      status: _selectedStatus,
-    );
-
-    setState(() => _isLoading = true);
-
-    try {
-      final createdCourse = await CourseApi().create(course);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ Course added: ${createdCourse.title}')),
-      );
-      Navigator.pop(context); // بعد الإضافة، ارجع للخلف
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('❌ Failed to add course: $e')));
-    }
-
-    setState(() => _isLoading = false);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Add New Course')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(labelText: 'Course Title'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
-              ),
-              SizedBox(height: 12),
-              TextFormField(
-                controller: _iconController,
-                decoration: InputDecoration(labelText: 'Icon (emoji like 📚)'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
-              ),
-              SizedBox(height: 12),
-              DropdownButtonFormField<CourseStatus>(
-                value: _selectedStatus,
-                items: CourseStatus.values.map((status) {
-                  return DropdownMenuItem(
-                    value: status,
-                    child: Text(status.name),
-                  );
-                }).toList(),
-                onChanged: (status) =>
-                    setState(() => _selectedStatus = status!),
-                decoration: InputDecoration(labelText: 'Status'),
-              ),
-              SizedBox(height: 12),
-              Text("Progress: ${(_progress * 100).toInt()}%"),
-              Slider(
-                value: _progress,
-                onChanged: (val) => setState(() => _progress = val),
-                min: 0,
-                max: 1,
-                divisions: 10,
-                label: '${(_progress * 100).toInt()}%',
-              ),
-              SizedBox(height: 20),
-              _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _submit,
-                      child: Text('Add Course'),
+    final authViewModel = context.read<AuthenticationViewModel>();
+    final l10n = AppLocalizations.of(context)!;
+
+    return ChangeNotifierProvider(
+      create: (_) => AddCourseViewModel(authViewModel: authViewModel),
+      child: Consumer<AddCourseViewModel>(
+        builder: (context, viewModel, child) {
+          return Scaffold(
+            appBar: AppBar(title: Text(l10n.addNewCourse)),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: viewModel.formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: viewModel.titleController,
+                      decoration: InputDecoration(
+                        labelText: l10n.courseTitle,
+                        hintText: l10n.courseTitleHint,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) => value == null || value.isEmpty ? l10n.fieldRequired : null,
                     ),
-            ],
-          ),
-        ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: viewModel.iconController,
+                      decoration: InputDecoration(
+                        labelText: l10n.icon,
+                        hintText: l10n.iconHint,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) => value == null || value.isEmpty ? l10n.fieldRequired : null,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<CourseStatus>(
+                      value: viewModel.selectedStatus,
+                      items: CourseStatus.values.map((status) {
+                        return DropdownMenuItem(
+                          value: status,
+                          child: Text(status.name),
+                        );
+                      }).toList(),
+                      onChanged: viewModel.setStatus,
+                      decoration: InputDecoration(
+                        labelText: l10n.status,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text("${l10n.progress}: ${(viewModel.progress * 100).toInt()}%", style: Theme.of(context).textTheme.titleMedium),
+                    Slider(
+                      value: viewModel.progress,
+                      onChanged: viewModel.setProgress,
+                      min: 0,
+                      max: 1,
+                      divisions: 10,
+                      label: '${(viewModel.progress * 100).toInt()}%',
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: viewModel.isLoading ? null : () async {
+                        final result = await viewModel.submitCourse();
+                        if (!context.mounted) return;
+
+                        if (result.startsWith('Error:')) {
+                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result), backgroundColor: Colors.red));
+                        } else if (result.isNotEmpty) {
+                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.courseAddedSuccess(result)), backgroundColor: Colors.green));
+                           Navigator.pop(context);
+                        }
+                      },
+                      child: viewModel.isLoading
+                          ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                          : Text(l10n.addCourse, style: const TextStyle(fontSize: 16)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

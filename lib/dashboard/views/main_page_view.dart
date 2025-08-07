@@ -1,12 +1,11 @@
-// lib/dashboard/views/main_page_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teacher_portal/auth/viewmodels/login_viewmodel.dart';
-import '../Models/Course-model.dart';
-import '../services/course_api.dart';
-import 'add_course_view.dart';
-import 'course_details_view.dart';
+import 'package:teacher_portal/dashboard/Models/Course-model.dart';
+import 'package:teacher_portal/dashboard/Viewmodels/main_page_viewmodel.dart';
+import 'package:teacher_portal/dashboard/views/add_course_view.dart';
+import 'package:teacher_portal/dashboard/views/course_details_view.dart';
+import 'package:teacher_portal/generated/app_localizations.dart';
 
 class MainPageView extends StatefulWidget {
   const MainPageView({super.key});
@@ -19,179 +18,159 @@ class _MainPageViewState extends State<MainPageView> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(() {
+      final teacherId = context.read<AuthenticationViewModel>().teacher?.id;
+      if (teacherId != null) {
+        context.read<MainPageViewModel>().fetchAllData(teacherId);
+      }
+    });
   }
 
-  Future<List<Course>> _fetchCourses(String teacherId) {
-    return CourseApi().readAll(teacherId);
+  Future<void> _refreshData() async {
+    final teacherId = context.read<AuthenticationViewModel>().teacher?.id;
+    if (teacherId != null) {
+      await context.read<MainPageViewModel>().fetchAllData(teacherId);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _myCoursesSection(),
-        const SizedBox(height: 20),
-        _upcomingAssignmentsSection(),
-        const SizedBox(height: 20),
-        _todaySummarySection(),
-        const SizedBox(height: 20),
-        _examsSection(),
-        const SizedBox(height: 80),
-      ],
-    );
-  }
+    final viewModel = context.watch<MainPageViewModel>();
+    final l10n = AppLocalizations.of(context)!;
 
-  Widget _myCoursesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(
-          "My Courses",
-          trailing: ElevatedButton(
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddCourseView()),
-              );
-              setState(() {});
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            child: const Text("+ Add New Course"),
-          ),
-        ),
-        const SizedBox(height: 10),
-        FutureBuilder<List<Course>>(
-          future: _fetchCourses(
-            context.watch<AuthenticationViewModel>().teacher?.id ?? '',
-          ),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Text("❌ Error loading courses: ${snapshot.error}");
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Text("لا توجد كورسات مضافة بعد.");
-            }
+    if (viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (viewModel.errorMessage != null) {
+      return Center(child: Text(l10n.errorLoadingCourses(viewModel.errorMessage!)));
+    }
 
-            final courses = snapshot.data!;
-            return Column(
-              children: courses.map((course) => _courseCard(course)).toList(),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _courseCard(Course course) {
-    return Card(
-      child: ListTile(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => CourseDetailsView(course: course),
-            ),
-          );
-        },
-        leading: Text(course.icon, style: const TextStyle(fontSize: 24)),
-        title: Text(course.title),
-        subtitle: Text(course.status.name),
-        trailing: SizedBox(
-          width: 60,
-          child: LinearProgressIndicator(
-            value: course.progress,
-            backgroundColor: Colors.grey[300],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-          ),
-        ),
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _myCoursesSection(context, viewModel, l10n),
+          const SizedBox(height: 24),
+          _upcomingAssignmentsSection(context, viewModel, l10n),
+          const SizedBox(height: 24),
+          _todaySummarySection(context, viewModel, l10n),
+          const SizedBox(height: 24),
+          _examsSection(context, viewModel, l10n),
+        ],
       ),
     );
   }
 
-  // الدوال المساعدة تبقى كما هي...
-  Widget _upcomingAssignmentsSection() {
-    final assignments = [
-      {
-        "title": "Essay: Industrial Revolution",
-        "course": "World History",
-        "progress": 75,
-      },
-      {"title": "Chapter 5 Problem Set", "course": "Algebra I", "progress": 50},
-      {
-        "title": "Lab Report: Chemistry",
-        "course": "Chemistry Basics",
-        "progress": 20,
-      },
-      {
-        "title": "Problem Solving: Kinematics",
-        "course": "Physics",
-        "progress": 0,
-      },
-    ];
+  Widget _sectionHeader(String title, {Widget? trailing}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          if (trailing != null) trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget _myCoursesSection(BuildContext context, MainPageViewModel viewModel, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Upcoming Assignments"),
-        const SizedBox(height: 10),
-        ...assignments.map((assignment) => _assignmentCard(assignment)),
+        _sectionHeader(
+          l10n.myCourses,
+          trailing: ElevatedButton.icon(
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(l10n.addNewCourse),
+            onPressed: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddCourseView()));
+              _refreshData(); // Refresh data after adding a new course
+            },
+          ),
+        ),
+        if (viewModel.courses.isEmpty)
+          Center(child: Padding(padding: const EdgeInsets.all(20.0), child: Text(l10n.noCoursesAdded)))
+        else
+          ...viewModel.courses.map((course) => _courseCard(context, course)),
+      ],
+    );
+  }
+
+  Widget _courseCard(BuildContext context, Course course) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ListTile(
+        onTap: () async {
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => CourseDetailsView(course: course)));
+          _refreshData();
+        },
+        leading: Text(course.icon, style: const TextStyle(fontSize: 28)),
+        title: Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: LinearProgressIndicator(
+          value: course.progress,
+          backgroundColor: Colors.grey[300],
+        ),
+        trailing: Text("${(course.progress * 100).toInt()}%"),
+      ),
+    );
+  }
+
+  Widget _upcomingAssignmentsSection(BuildContext context, MainPageViewModel viewModel, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionHeader(l10n.upcomingAssignments),
+        if (viewModel.upcomingAssignments.isEmpty)
+          Center(child: Padding(padding: const EdgeInsets.all(20.0), child: Text(l10n.noUpcomingAssignments)))
+        else
+          ...viewModel.upcomingAssignments.map((assignment) => _assignmentCard(assignment)),
       ],
     );
   }
 
   Widget _assignmentCard(Map<String, dynamic> assignment) {
+    final submissions = assignment['submissions'] is Map ? (assignment['submissions'] as Map).length : 0;
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        leading: const Icon(Icons.assignment, color: Colors.orange),
+        leading: const Icon(Icons.assignment_late, color: Colors.orange),
         title: Text(assignment["title"]),
-        subtitle: Text(assignment["course"]),
-        trailing: SizedBox(
-          width: 60,
-          child: LinearProgressIndicator(
-            value: (assignment["progress"] / 100),
-            backgroundColor: Colors.grey[300],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-          ),
-        ),
+        subtitle: Text(assignment["courseName"]),
+        trailing: Text("$submissions submissions"),
       ),
     );
   }
 
-  Widget _todaySummarySection() {
+  Widget _todaySummarySection(BuildContext context, MainPageViewModel viewModel, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Today's Summary"),
-        const SizedBox(height: 10),
+        _sectionHeader(l10n.todaysSummary),
         Row(
           children: [
-            _summaryCard("Pending Assignments", 3),
+            _summaryCard(l10n.pendingAssignments, viewModel.upcomingAssignments.length, Icons.assignment, Colors.orange),
             const SizedBox(width: 16),
-            _summaryCard("Scheduled Exams", 1),
+            _summaryCard(l10n.scheduledExams, viewModel.upcomingExams.length, Icons.quiz, Colors.purple),
           ],
         ),
       ],
     );
   }
 
-  Widget _summaryCard(String label, int count) {
+  Widget _summaryCard(String label, int count, IconData icon, Color color) {
     return Expanded(
       child: Card(
-        color: Colors.blue[50],
+        color: color.withOpacity(0.1),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Text(label),
+              CircleAvatar(backgroundColor: color, child: Icon(icon, color: Colors.white)),
               const SizedBox(height: 8),
-              CircleAvatar(
-                backgroundColor: Colors.blue,
-                child: Text(
-                  count.toString(),
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
+              Text(count.toString(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(label, textAlign: TextAlign.center),
             ],
           ),
         ),
@@ -199,81 +178,44 @@ class _MainPageViewState extends State<MainPageView> {
     );
   }
 
-  Widget _examsSection() {
+  Widget _examsSection(BuildContext context, MainPageViewModel viewModel, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader("Exams"),
-        const SizedBox(height: 10),
-        _examGroup("Upcoming Exams", [
-          _examCard("Midterm Exam", "Algebra I", "Nov 25", "Upcoming"),
-          _examCard("Unit 3 Test", "Chemistry Basics", "Nov 28", "Upcoming"),
-        ]),
-        _examGroup("Active Exams", [
-          _examCard("Quiz: WWII Causes", "World History", "Nov 10", "Active"),
-        ]),
-        _examGroup("Completed Exams", [
-          _examCard("Chapter 1 Quiz", "Physics", "Nov 5", "Completed"),
-          _examCard("Intro to Linear", "Algebra I", "Oct 28", "Completed"),
-        ]),
+        _sectionHeader(l10n.exams),
+        if (viewModel.allExams.isEmpty)
+           Center(child: Padding(padding: const EdgeInsets.all(20.0), child: Text(l10n.noExamsScheduled)))
+        else ...[
+          _examGroup(l10n.upcoming, viewModel.upcomingExams, Colors.blue),
+          _examGroup(l10n.active, viewModel.activeExams, Colors.green),
+          _examGroup(l10n.completed, viewModel.completedExams, Colors.grey),
+        ]
       ],
     );
   }
 
-  Widget _examGroup(String title, List<Widget> exams) {
+  Widget _examGroup(String title, List<Map<String, dynamic>> exams, Color color) {
+    if (exams.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        ...exams,
-        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+        ),
+        ...exams.map((exam) => _examCard(exam, color)),
       ],
     );
   }
 
-  Widget _examCard(String title, String course, String date, String status) {
-    Color statusColor = status == "Active"
-        ? Colors.green
-        : status == "Completed"
-        ? Colors.grey
-        : Colors.blue;
+  Widget _examCard(Map<String, dynamic> exam, Color statusColor) {
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        title: Text(title),
-        subtitle: Text(course),
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(date, style: const TextStyle(color: Colors.grey)),
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(color: statusColor, fontSize: 12),
-              ),
-            ),
-          ],
-        ),
+        title: Text(exam["title"]),
+        subtitle: Text(exam["courseName"]),
+        trailing: Text(exam['date']?.toString().split('T')[0] ?? ''),
       ),
-    );
-  }
-
-  Widget _sectionHeader(String title, {Widget? trailing}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        if (trailing != null) trailing,
-      ],
     );
   }
 }
