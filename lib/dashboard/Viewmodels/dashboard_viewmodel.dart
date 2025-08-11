@@ -25,6 +25,14 @@ class DashboardViewModel extends ChangeNotifier {
   Map<String, double> _assignmentSubmissionsData = {};
   Map<String, double> get assignmentSubmissionsData =>
       _assignmentSubmissionsData;
+      
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
 
   Future<void> fetchDashboardData(String teacherId) async {
     _setLoading(true);
@@ -97,7 +105,10 @@ class DashboardViewModel extends ChangeNotifier {
   }
 
   void _setLoading(bool loading) {
+    if (!_isDisposed) return;
     _isLoading = loading;
     notifyListeners();
   }
+
+
 }

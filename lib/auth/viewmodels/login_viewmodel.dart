@@ -22,9 +22,9 @@ class AuthenticationViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   String resultMsg = "";
-  
+
   bool obscurePassword = true;
-  
+
   Teacher? teacher;
 
   void togglePasswordVisibility() {
@@ -42,10 +42,14 @@ class AuthenticationViewModel extends ChangeNotifier {
       String? token = await FirebaseMessaging.instance.getToken();
       if (token == null) return;
 
-      final tokenRef = FirebaseDatabase.instance.ref("teachers/$teacherId/fcmTokens");
-      
+      final tokenRef = FirebaseDatabase.instance.ref(
+        "teachers/$teacherId/fcmTokens",
+      );
+
       await tokenRef.runTransaction((Object? currentData) {
-        List<dynamic> tokens = currentData == null ? [] : List<dynamic>.from(currentData as List);
+        List<dynamic> tokens = currentData == null
+            ? []
+            : List<dynamic>.from(currentData as List);
         if (!tokens.contains(token)) {
           tokens.add(token);
         }
@@ -57,7 +61,10 @@ class AuthenticationViewModel extends ChangeNotifier {
   }
 
   Future<void> register() async {
-    if (fullNameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty || phoneController.text.isEmpty) {
+    if (fullNameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        phoneController.text.isEmpty) {
       resultMsg = "الرجاء إكمال جميع الحقول المطلوبة.";
       notifyListeners();
       return;
@@ -95,6 +102,24 @@ class AuthenticationViewModel extends ChangeNotifier {
     _setLoading(false);
   }
 
+  Future<void> _syncFcmToken(String teacherId) async {
+    try {
+      String? token = await FirebaseMessaging.instance.getToken();
+      if (token == null) {
+        print("ℹ️ FCM token is null, cannot sync.");
+        return;
+      }
+      // استدعاء الخدمة لمزامنة التوكن مع كلا قاعدتي البيانات
+      await _teacherService.addFcmToken(teacherId, token);
+    } catch (e) {
+      // طباعة الخطأ إذا حدثت مشكلة أثناء الحصول على التوكن
+      print("❌ Failed to get FCM token to sync: $e");
+    }
+  }
+
+  // ... (الكود الحالي: register)
+
+  // -->> قم بتعديل دالة login لاستدعاء الدالة الجديدة <<--
   Future<bool> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       resultMsg = "الرجاء إدخال البريد الإلكتروني وكلمة المرور.";
@@ -115,20 +140,32 @@ class AuthenticationViewModel extends ChangeNotifier {
         teacher = await _teacherService.getTeacherById(user.uid);
 
         if (teacher != null) {
-          await _updateFcmToken(teacher!.id!);
+          // -->> هذا هو التعديل الرئيسي هنا <<--
+          // استدعاء الدالة الجديدة التي تتعامل مع كلا قاعدتي البيانات
+          await _syncFcmToken(teacher!.id!);
 
           resultMsg = "✅ تسجيل الدخول ناجح";
-          await _storage.write(key: 'email', value: emailController.text.trim());
-          await _storage.write(key: 'password', value: passwordController.text.trim());
+          await _storage.write(
+            key: 'email',
+            value: emailController.text.trim(),
+          );
+          await _storage.write(
+            key: 'password',
+            value: passwordController.text.trim(),
+          );
           _setLoading(false);
           return true;
         } else {
-          resultMsg = "❌ المصادقة نجحت ولكن لم يتم العثور على بيانات الملف الشخصي.";
+          resultMsg =
+              "❌ المصادقة نجحت ولكن لم يتم العثور على بيانات الملف الشخصي.";
           await _auth.signOut();
         }
       }
     } on FirebaseAuthException catch (e) {
-      resultMsg = e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential'
+      resultMsg =
+          e.code == 'user-not-found' ||
+              e.code == 'wrong-password' ||
+              e.code == 'invalid-credential'
           ? "❌ البريد الإلكتروني أو كلمة المرور غير صحيحة."
           : (e.message ?? "❌ فشل تسجيل الدخول");
     } catch (e) {
@@ -138,7 +175,7 @@ class AuthenticationViewModel extends ChangeNotifier {
     _setLoading(false);
     return false;
   }
-  
+
   Future<bool> authenticateWithBiometrics() async {
     final email = await _storage.read(key: 'email');
     final password = await _storage.read(key: 'password');
@@ -203,6 +240,8 @@ class AuthenticationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  
+  
   @override
   void dispose() {
     fullNameController.dispose();

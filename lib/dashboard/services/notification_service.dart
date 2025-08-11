@@ -29,7 +29,6 @@ class NotificationService extends ChangeNotifier {
 
   NotificationService() {
     _initializeLocalNotifications();
-    startPollingForNewSubmissions();
   }
 
   void _initializeLocalNotifications() async {
@@ -111,47 +110,11 @@ Future<void> fetchStoredNotifications() async {
     notifyListeners();
   }
 
-  void startPollingForNewSubmissions() {
-    Timer.periodic(const Duration(seconds: 30), (timer) async {
-      await _checkForNewSubmissions();
-    });
-  }
+
 
   int _lastCount = 0;
 
-  Future<void> _checkForNewSubmissions() async {
-    final snapshot = await FirebaseDatabaseService().ref('courses').get();
-    int newCount = 0;
-
-    if (snapshot.exists && snapshot.value != null) {
-      final courses = Map<String, dynamic>.from(snapshot.value as Map);
-      for (var courseEntry in courses.entries) {
-        final course = courseEntry.value;
-        if (course is Map && course.containsKey('assignments')) {
-          final assignments = Map<String, dynamic>.from(course['assignments']);
-          for (var assg in assignments.entries) {
-            final subs = assg.value['submissions'];
-            if (subs != null && subs is Map) {
-              newCount += subs.length;
-            }
-          }
-        }
-      }
-    }
-
-    if (newCount > _lastCount) {
-      int diff = newCount - _lastCount;
-      _lastCount = newCount;
-
-      _showLocalNotification("\ud83d\udce5 تسليمات جديدة", "تم تسليم $diff واجب جديد");
-      _notifications.insert(
-        0,
-        AppNotification(title: "\ud83d\udce5 تسليمات جديدة", body: "تم تسليم $diff واجب جديد", receivedAt: DateTime.now()),
-      );
-      notifyListeners();
-    }
-  }
-
+  
   Future<void> sendAndStoreNotificationToStudents({
     required String courseId,
     required String title,
